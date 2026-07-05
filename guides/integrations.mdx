@@ -1,7 +1,7 @@
 ---
-title: "Integrate Google with Your Tools and Workflows"
+title: "Connect Google to Your Favorite Tools and Workflows"
 sidebarTitle: "Integrations"
-description: "Connect Google to Slack, Zapier, and custom apps using webhooks and OAuth. Subscribe to events and automate your workflows."
+description: "Connect Google to Slack, Zapier, Make, and custom apps via webhooks and OAuth 2.0. Automate workflows and subscribe to real-time events."
 ---
 
 Google connects to the tools your team already uses, so information flows where you need it without manual copying or context-switching. Whether you are building a custom integration, automating tasks through a no-code platform, or piping search activity into Slack, this guide covers the setup for each approach.
@@ -61,7 +61,7 @@ Register an OAuth app when you want your own application to act on behalf of Goo
    - **Redirect URIs** — the callback URL(s) in your app that Google redirects to after authorization. You can add multiple URIs separated by line breaks.
    - **Scopes** — select the minimum permissions your app needs (for example, `search:read`, `collections:write`).
 3. Click **Register**. Google displays your **Client ID** and **Client Secret** — copy and store the secret immediately, as it is shown only once.
-4. Implement the standard OAuth 2.0 authorization code flow in your app using these credentials. Point your authorization request to `https://accounts.google.com/o/oauth2/auth`.
+4. Implement the standard OAuth 2.0 authorization code flow in your app using these credentials. Point your authorization request to `https://api.google.com/v1/oauth/authorize`.
 
 <Info>
   Rotate your Client Secret at any time from the OAuth Apps settings page. Existing tokens remain valid until they expire or are revoked, giving you time to update your application before the old secret stops working.

@@ -17,7 +17,7 @@ Returns the profile of the currently authenticated user. No additional parameter
 ### Response Fields
 
 <ResponseField name="id" type="string">
-  Unique identifier for your Google user account.
+  Unique identifier for your user account.
 </ResponseField>
 
 <ResponseField name="email" type="string">
@@ -25,7 +25,7 @@ Returns the profile of the currently authenticated user. No additional parameter
 </ResponseField>
 
 <ResponseField name="name" type="string">
-  Your display name as shown across Google products.
+  Your display name as shown across the platform.
 </ResponseField>
 
 <ResponseField name="avatar_url" type="string">
@@ -46,7 +46,7 @@ Returns the profile of the currently authenticated user. No additional parameter
 
 ```bash cURL
 curl https://api.google.com/v1/users/me \
-  -H "Authorization: Bearer YOUR_API_KEY"
+  -H "Authorization: Bearer ggl_sk_live_abc123"
 ```
 
 ```python Python
@@ -54,7 +54,7 @@ import requests
 
 response = requests.get(
     "https://api.google.com/v1/users/me",
-    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    headers={"Authorization": "Bearer ggl_sk_live_abc123"},
 )
 
 print(response.json())
@@ -99,13 +99,39 @@ Updates one or more fields on your profile. Only the fields you include in the r
   Your preferred timezone in IANA format, for example `America/New_York` or `Europe/London`. Used for scheduling features and timestamp display.
 </ParamField>
 
+### Response Fields
+
+<ResponseField name="id" type="string">
+  Unique identifier for your user account.
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  The primary email address associated with your account.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Your updated display name.
+</ResponseField>
+
+<ResponseField name="avatar_url" type="string">
+  URL to your profile picture, or `null` if no avatar is set.
+</ResponseField>
+
+<ResponseField name="created_at" type="string">
+  ISO 8601 timestamp recording when your account was created.
+</ResponseField>
+
+<ResponseField name="plan" type="string">
+  Your current subscription plan.
+</ResponseField>
+
 ### Examples
 
 <CodeGroup>
 
 ```bash cURL
 curl -X PATCH https://api.google.com/v1/users/me \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer ggl_sk_live_abc123" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Alex R.",
@@ -118,7 +144,7 @@ import requests
 
 response = requests.patch(
     "https://api.google.com/v1/users/me",
-    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    headers={"Authorization": "Bearer ggl_sk_live_abc123"},
     json={
         "name": "Alex R.",
         "timezone": "America/Los_Angeles",
@@ -153,13 +179,37 @@ print(response.json())
 
 Returns all API keys associated with your account, ordered by creation date. The secret `key` value is **not** returned by this endpoint — it is only shown once at creation time.
 
+### Response Fields
+
+<ResponseField name="api_keys" type="array">
+  List of API key objects associated with your account.
+
+  <Expandable title="api key object">
+    <ResponseField name="id" type="string">
+      Unique identifier for the API key.
+    </ResponseField>
+
+    <ResponseField name="name" type="string">
+      The descriptive label assigned to this key.
+    </ResponseField>
+
+    <ResponseField name="created_at" type="string">
+      ISO 8601 timestamp recording when the key was created.
+    </ResponseField>
+
+    <ResponseField name="expires_at" type="string">
+      ISO 8601 timestamp after which the key expires. `null` if the key has no expiration.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
 ### Examples
 
 <CodeGroup>
 
 ```bash cURL
 curl https://api.google.com/v1/users/me/api-keys \
-  -H "Authorization: Bearer YOUR_API_KEY"
+  -H "Authorization: Bearer ggl_sk_live_abc123"
 ```
 
 ```python Python
@@ -167,7 +217,7 @@ import requests
 
 response = requests.get(
     "https://api.google.com/v1/users/me/api-keys",
-    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    headers={"Authorization": "Bearer ggl_sk_live_abc123"},
 )
 
 print(response.json())
@@ -244,7 +294,7 @@ Generates a new API key for your account. The plaintext `key` value is returned 
 
 ```bash cURL
 curl -X POST https://api.google.com/v1/users/me/api-keys \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer ggl_sk_live_abc123" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Production App",
@@ -257,7 +307,7 @@ import requests
 
 response = requests.post(
     "https://api.google.com/v1/users/me/api-keys",
-    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    headers={"Authorization": "Bearer ggl_sk_live_abc123"},
     json={
         "name": "Production App",
         "expires_at": "2025-12-31T23:59:59Z",
@@ -275,7 +325,7 @@ print(response.json())
 {
   "id": "key_5zw1v",
   "name": "Production App",
-  "key": "ggl_live_aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890",
+  "key": "ggl_sk_live_abc123xyz987",
   "created_at": "2024-07-01T10:00:00Z",
   "expires_at": "2025-12-31T23:59:59Z"
 }
@@ -303,7 +353,7 @@ Permanently revokes an API key. Any in-flight requests using the revoked key wil
 
 ```bash cURL
 curl -X DELETE https://api.google.com/v1/users/me/api-keys/key_5zw1v \
-  -H "Authorization: Bearer YOUR_API_KEY"
+  -H "Authorization: Bearer ggl_sk_live_abc123"
 ```
 
 ```python Python
@@ -311,7 +361,7 @@ import requests
 
 response = requests.delete(
     "https://api.google.com/v1/users/me/api-keys/key_5zw1v",
-    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    headers={"Authorization": "Bearer ggl_sk_live_abc123"},
 )
 
 # Returns 204 No Content on success

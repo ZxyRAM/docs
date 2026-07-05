@@ -1,7 +1,7 @@
 ---
-title: "Troubleshoot Common Google Issues"
+title: "Troubleshooting Common Issues on the Google Platform"
 sidebarTitle: "Troubleshooting"
-description: "Fix common problems with Google: 401 errors, rate limits, empty search results, webhook failures, and team invitation issues."
+description: "Fix common Google platform problems: 401 auth errors, rate limits, empty search results, webhook delivery failures, and team invitation issues."
 ---
 
 When something isn't working as expected, the sections below walk you through the most frequently encountered issues and the steps to resolve each one quickly.
@@ -34,7 +34,7 @@ When something isn't working as expected, the sections below walk you through th
     Ensure the key has not been truncated, URL-encoded, or had whitespace introduced by your environment. Run a quick sanity check:
 
     ```bash
-    curl -I https://api.google.com/v1/ping \
+    curl -I https://api.usegoogle.com/v1/ping \
       -H "Authorization: Bearer $GOOGLE_API_KEY"
     ```
 

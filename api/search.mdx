@@ -90,7 +90,7 @@ Executes a full-text search against your indexed resources. Results are ranked b
 
 ```bash cURL
 curl -G https://api.google.com/v1/search \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer ggl_sk_live_abc123" \
   --data-urlencode "q=getting started guide" \
   --data-urlencode "limit=5" \
   --data-urlencode "filters=docs,public" \
@@ -102,7 +102,7 @@ import requests
 
 response = requests.get(
     "https://api.google.com/v1/search",
-    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    headers={"Authorization": "Bearer ggl_sk_live_abc123"},
     params={
         "q": "getting started guide",
         "limit": 5,
@@ -186,7 +186,7 @@ Saves a named search query so you can re-run it later without rebuilding the que
 
 ```bash cURL
 curl -X POST https://api.google.com/v1/search/saved \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer ggl_sk_live_abc123" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Onboarding Docs",
@@ -200,7 +200,7 @@ import requests
 
 response = requests.post(
     "https://api.google.com/v1/search/saved",
-    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    headers={"Authorization": "Bearer ggl_sk_live_abc123"},
     json={
         "name": "Onboarding Docs",
         "query": "getting started guide",
@@ -234,13 +234,43 @@ print(response.json())
 
 Returns all saved searches accessible to the authenticated user. Results are ordered by creation date, newest first.
 
+### Query Parameters
+
+<ParamField query="workspace_id" type="string">
+  Filters saved searches to those belonging to the specified workspace. When omitted, saved searches from all accessible workspaces are returned.
+</ParamField>
+
+### Response Fields
+
+<ResponseField name="saved_searches" type="array">
+  List of saved search objects ordered by creation date, newest first.
+
+  <Expandable title="saved search object">
+    <ResponseField name="id" type="string">
+      Unique identifier of the saved search.
+    </ResponseField>
+
+    <ResponseField name="name" type="string">
+      The label assigned to this saved search.
+    </ResponseField>
+
+    <ResponseField name="query" type="string">
+      The stored search query string.
+    </ResponseField>
+
+    <ResponseField name="created_at" type="string">
+      ISO 8601 timestamp recording when the saved search was created.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
 ### Examples
 
 <CodeGroup>
 
 ```bash cURL
 curl https://api.google.com/v1/search/saved \
-  -H "Authorization: Bearer YOUR_API_KEY"
+  -H "Authorization: Bearer ggl_sk_live_abc123"
 ```
 
 ```python Python
@@ -248,7 +278,7 @@ import requests
 
 response = requests.get(
     "https://api.google.com/v1/search/saved",
-    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    headers={"Authorization": "Bearer ggl_sk_live_abc123"},
 )
 
 print(response.json())
@@ -299,7 +329,7 @@ Permanently removes a saved search. This action cannot be undone. The underlying
 
 ```bash cURL
 curl -X DELETE https://api.google.com/v1/search/saved/sv_7tz4p \
-  -H "Authorization: Bearer YOUR_API_KEY"
+  -H "Authorization: Bearer ggl_sk_live_abc123"
 ```
 
 ```python Python
@@ -307,7 +337,7 @@ import requests
 
 response = requests.delete(
     "https://api.google.com/v1/search/saved/sv_7tz4p",
-    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    headers={"Authorization": "Bearer ggl_sk_live_abc123"},
 )
 
 # Returns 204 No Content on success

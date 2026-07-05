@@ -14,13 +14,41 @@ Webhooks let your application receive real-time HTTP notifications whenever spec
 
 Returns all webhooks registered in your account, ordered by creation date. Use this endpoint to audit active subscriptions or retrieve webhook IDs before updating or deleting them.
 
+### Response Fields
+
+<ResponseField name="webhooks" type="array">
+  List of webhook objects registered to your account.
+
+  <Expandable title="webhook object">
+    <ResponseField name="id" type="string">
+      Unique identifier for the webhook.
+    </ResponseField>
+
+    <ResponseField name="url" type="string">
+      The destination URL registered to receive event payloads.
+    </ResponseField>
+
+    <ResponseField name="events" type="array of strings">
+      The list of event types this webhook is subscribed to.
+    </ResponseField>
+
+    <ResponseField name="status" type="string">
+      Current delivery status. `active` means events are being delivered. `disabled` means delivery has been paused, typically due to repeated delivery failures.
+    </ResponseField>
+
+    <ResponseField name="created_at" type="string">
+      ISO 8601 timestamp recording when the webhook was created.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
 ### Examples
 
 <CodeGroup>
 
 ```bash cURL
 curl https://api.google.com/v1/webhooks \
-  -H "Authorization: Bearer YOUR_API_KEY"
+  -H "Authorization: Bearer ggl_sk_live_abc123"
 ```
 
 ```python Python
@@ -28,7 +56,7 @@ import requests
 
 response = requests.get(
     "https://api.google.com/v1/webhooks",
-    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    headers={"Authorization": "Bearer ggl_sk_live_abc123"},
 )
 
 print(response.json())
@@ -117,13 +145,13 @@ Registers a new webhook endpoint and subscribes it to one or more event types. G
 
 ```bash cURL
 curl -X POST https://api.google.com/v1/webhooks \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer ggl_sk_live_abc123" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://example.com/hooks/google",
     "events": ["resource.created", "resource.deleted", "member.invited"],
     "workspace_id": "ws_01abc123",
-    "secret": "my_webhook_secret_value"
+    "secret": "whsec_v1_myrandomsecret9x2k"
   }'
 ```
 
@@ -132,12 +160,12 @@ import requests
 
 response = requests.post(
     "https://api.google.com/v1/webhooks",
-    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    headers={"Authorization": "Bearer ggl_sk_live_abc123"},
     json={
         "url": "https://example.com/hooks/google",
         "events": ["resource.created", "resource.deleted", "member.invited"],
         "workspace_id": "ws_01abc123",
-        "secret": "my_webhook_secret_value",
+        "secret": "whsec_v1_myrandomsecret9x2k",
     },
 )
 
@@ -174,13 +202,35 @@ Returns a single webhook by its unique identifier, including its subscribed even
   The unique identifier of the webhook to retrieve.
 </ParamField>
 
+### Response Fields
+
+<ResponseField name="id" type="string">
+  Unique identifier for the webhook.
+</ResponseField>
+
+<ResponseField name="url" type="string">
+  The destination URL registered to receive event payloads.
+</ResponseField>
+
+<ResponseField name="events" type="array of strings">
+  The list of event types this webhook is subscribed to.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Current delivery status. `active` means events are being delivered. `disabled` means delivery has been paused.
+</ResponseField>
+
+<ResponseField name="created_at" type="string">
+  ISO 8601 timestamp recording when the webhook was created.
+</ResponseField>
+
 ### Examples
 
 <CodeGroup>
 
 ```bash cURL
 curl https://api.google.com/v1/webhooks/wh_3rt5n \
-  -H "Authorization: Bearer YOUR_API_KEY"
+  -H "Authorization: Bearer ggl_sk_live_abc123"
 ```
 
 ```python Python
@@ -188,13 +238,25 @@ import requests
 
 response = requests.get(
     "https://api.google.com/v1/webhooks/wh_3rt5n",
-    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    headers={"Authorization": "Bearer ggl_sk_live_abc123"},
 )
 
 print(response.json())
 ```
 
 </CodeGroup>
+
+**Example Response**
+
+```json
+{
+  "id": "wh_3rt5n",
+  "url": "https://example.com/hooks/google",
+  "events": ["resource.created", "resource.deleted", "member.invited"],
+  "status": "active",
+  "created_at": "2024-07-10T12:00:00Z"
+}
+```
 
 ---
 
@@ -218,7 +280,7 @@ Permanently removes a webhook and immediately stops all event delivery to its UR
 
 ```bash cURL
 curl -X DELETE https://api.google.com/v1/webhooks/wh_3rt5n \
-  -H "Authorization: Bearer YOUR_API_KEY"
+  -H "Authorization: Bearer ggl_sk_live_abc123"
 ```
 
 ```python Python
@@ -226,7 +288,7 @@ import requests
 
 response = requests.delete(
     "https://api.google.com/v1/webhooks/wh_3rt5n",
-    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    headers={"Authorization": "Bearer ggl_sk_live_abc123"},
 )
 
 # Returns 204 No Content on success
@@ -313,7 +375,7 @@ Call this function at the start of your webhook handler before you take any acti
 from flask import Flask, request, abort
 
 app = Flask(__name__)
-WEBHOOK_SECRET = "my_webhook_secret_value"
+WEBHOOK_SECRET = "whsec_v1_myrandomsecret9x2k"
 
 
 @app.route("/hooks/google", methods=["POST"])
