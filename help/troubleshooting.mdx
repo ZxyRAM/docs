@@ -1,0 +1,175 @@
+---
+title: "Troubleshoot Common Google Issues"
+sidebarTitle: "Troubleshooting"
+description: "Fix common problems with Google: 401 errors, rate limits, empty search results, webhook failures, and team invitation issues."
+---
+
+When something isn't working as expected, the sections below walk you through the most frequently encountered issues and the steps to resolve each one quickly.
+
+<AccordionGroup>
+  <Accordion title="401 Unauthorized — API key missing, expired, or malformed">
+    A `401 Unauthorized` response means Google could not authenticate your request. This is almost always caused by one of three problems:
+
+    **1. Missing API key**
+
+    Every request to the Google API must include your API key in the `Authorization` header:
+
+    ```http
+    Authorization: Bearer YOUR_API_KEY
+    ```
+
+    Confirm the header is present in every request — it is not optional, even for public endpoints.
+
+    **2. Expired API key**
+
+    API keys expire if not used for 90 days, or if you manually revoke them. To generate a new key:
+
+    1. Open **Settings → API Keys**.
+    2. Click **New API key**, give it a descriptive name, and set an expiry.
+    3. Copy the key immediately — it is only shown once.
+    4. Update all services and environment variables that reference the old key.
+
+    **3. Malformed API key**
+
+    Ensure the key has not been truncated, URL-encoded, or had whitespace introduced by your environment. Run a quick sanity check:
+
+    ```bash
+    curl -I https://api.google.com/v1/ping \
+      -H "Authorization: Bearer $GOOGLE_API_KEY"
+    ```
+
+    A `200 OK` confirms the key is valid. A `401` response body contains a `code` field with more detail, for example `key_expired` or `key_not_found`.
+  </Accordion>
+
+  <Accordion title="429 Too Many Requests — rate limit exceeded">
+    A `429 Too Many Requests` response means your application has exceeded the number of API calls allowed in the current time window. Google does not queue excess requests — each one is rejected immediately.
+
+    **Read the rate-limit headers**
+
+    Every API response includes headers that tell you where you stand:
+
+    ```
+    X-RateLimit-Limit: 1000
+    X-RateLimit-Remaining: 0
+    X-RateLimit-Reset: 1717200000
+    ```
+
+    Wait until the Unix timestamp in `X-RateLimit-Reset` has passed before retrying.
+
+    **Implement exponential backoff**
+
+    Hard-retrying immediately after a 429 makes the problem worse. Use exponential backoff with jitter instead:
+
+    ```python
+    import time
+    import random
+    import requests
+
+    def call_with_backoff(url, headers, max_retries=5):
+        for attempt in range(max_retries):
+            response = requests.get(url, headers=headers)
+
+            if response.status_code != 429:
+                return response
+
+            # Exponential backoff: 1s, 2s, 4s, 8s, 16s — plus random jitter
+            wait = (2 ** attempt) + random.uniform(0, 1)
+            print(f"Rate limited. Retrying in {wait:.2f}s (attempt {attempt + 1})")
+            time.sleep(wait)
+
+        raise Exception("Max retries exceeded")
+    ```
+
+    **Reduce request volume**
+
+    - Batch multiple items into a single request where the API supports it.
+    - Cache responses for data that doesn't change frequently.
+    - Upgrade your plan for a higher rate-limit quota, or request a custom limit at [support@google.com](mailto:support@google.com).
+  </Accordion>
+
+  <Accordion title="Search returns no results">
+    If a search query returns zero results, work through the following checks in order:
+
+    **1. Broaden your query**
+
+    Overly specific queries — especially those combining multiple operators — often filter out all matching documents. Remove operators one at a time to identify which constraint is too narrow.
+
+    **2. Check active filters**
+
+    Filters applied in the search UI (date range, content type, workspace scope) persist between sessions. Click **Clear all filters** in the sidebar and re-run your query.
+
+    **3. Verify indexing is complete**
+
+    Newly added or updated content can take up to 10 minutes to appear in search results. Check the indexing status under **Workspace Settings → Search → Index status**. If the status shows **Pending** or **Error**, your content may not yet be searchable.
+
+    **4. Confirm the content is in scope**
+
+    Search is scoped to the current workspace by default. If the document lives in a different workspace, switch to that workspace before searching, or use a cross-workspace search if your plan supports it.
+
+    **5. Test with a known term**
+
+    Search for a word you know exists verbatim in a document title. If that returns results but your original query doesn't, the issue is with query construction rather than indexing.
+
+    If none of the above resolves the issue, contact [support@google.com](mailto:support@google.com) with your workspace ID and the exact query string.
+  </Accordion>
+
+  <Accordion title="Webhook not firing">
+    If your registered webhook endpoint is not receiving events, check each of the following:
+
+    **1. Verify the endpoint URL**
+
+    Open **Settings → Webhooks** and confirm the destination URL is correct — a single typo will silently drop all events. Send a test event using the **Send test** button and check your server logs for an incoming request.
+
+    **2. Check your SSL certificate**
+
+    Google only delivers webhooks to endpoints secured with a valid, publicly trusted TLS certificate. Self-signed certificates and certificates from private CAs are rejected. Run a quick check:
+
+    ```bash
+    curl -I https://your-endpoint.example.com/webhook
+    ```
+
+    If you see an SSL error, renew or replace your certificate before re-enabling the webhook.
+
+    **3. Confirm event subscriptions**
+
+    Webhooks only fire for the event types you have explicitly subscribed to. In **Settings → Webhooks → Edit**, expand the **Events** section and ensure the relevant events (e.g., `search.completed`, `workspace.updated`) are checked.
+
+    **4. Check for failed deliveries**
+
+    Google retries failed webhook deliveries up to five times with exponential backoff. View the delivery log under **Settings → Webhooks → Delivery history** to see HTTP response codes returned by your endpoint. A `5xx` code from your server means Google reached you but your application returned an error.
+
+    **5. Confirm your endpoint responds within 10 seconds**
+
+    Google considers a webhook delivery failed if your endpoint does not respond within 10 seconds. Offload any heavy processing to a background job and return `200 OK` immediately upon receipt.
+  </Accordion>
+
+  <Accordion title="Can't invite a team member">
+    If the **Invite** button is greyed out or you receive an error when sending a team invitation, check the following:
+
+    **1. Verify the email address format**
+
+    The invitation form requires a valid email address. Ensure there are no typos, extra spaces, or unsupported special characters. Addresses from certain disposable email providers are also blocked by default.
+
+    **2. Check your plan's member limit**
+
+    Each Google plan includes a maximum number of workspace seats:
+
+    | Plan | Included seats |
+    |---|---|
+    | Free | 3 |
+    | Pro | 25 |
+    | Enterprise | Unlimited |
+
+    To check your current usage, go to **Settings → Members**. If you've reached your limit, remove inactive members or upgrade your plan under **Settings → Billing**.
+
+    **3. Check whether the person is already a member**
+
+    If the invitee already belongs to your workspace — even with a different role — the invitation will fail. Search for their name or email on the **Members** page.
+
+    **4. Check whether an invitation is already pending**
+
+    An unaccepted invitation counts against your seat limit and prevents a duplicate invite from being sent. Scroll to the **Pending invitations** section of the **Members** page and resend or cancel the existing invite if needed.
+
+    If you continue to experience problems, contact [support@google.com](mailto:support@google.com) with the affected workspace ID and the email address you're trying to invite.
+  </Accordion>
+</AccordionGroup>

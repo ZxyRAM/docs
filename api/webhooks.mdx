@@ -1,0 +1,329 @@
+---
+title: "Webhooks API: Subscribe to Google Events"
+sidebarTitle: "Webhooks"
+description: "Create and manage webhooks to receive real-time push notifications for Google events like resource creation, searches, and member activity."
+---
+
+Webhooks let your application receive real-time HTTP notifications whenever specific events occur in your Google workspace — no polling required. When an event fires, Google sends a signed `POST` request to the HTTPS URL you register, giving you an immediate, reliable stream of activity to react to.
+
+## List Webhooks
+
+<br />
+
+`GET /v1/webhooks`
+
+Returns all webhooks registered in your account, ordered by creation date. Use this endpoint to audit active subscriptions or retrieve webhook IDs before updating or deleting them.
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl https://api.google.com/v1/webhooks \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.google.com/v1/webhooks",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+**Example Response**
+
+```json
+{
+  "webhooks": [
+    {
+      "id": "wh_3rt5n",
+      "url": "https://example.com/hooks/google",
+      "events": ["resource.created", "resource.deleted"],
+      "status": "active",
+      "created_at": "2024-04-01T08:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## Create a Webhook
+
+<br />
+
+`POST /v1/webhooks`
+
+Registers a new webhook endpoint and subscribes it to one or more event types. Google will begin delivering event payloads to your URL immediately after creation. You can optionally provide a `secret` to enable HMAC signature verification on incoming requests.
+
+### Body Parameters
+
+<ParamField body="url" type="string" required>
+  The destination URL to which Google will `POST` event payloads. Must use `https://` — plain HTTP endpoints are rejected.
+</ParamField>
+
+<ParamField body="events" type="array of strings" required>
+  List of event types to subscribe to. At least one event is required. Available events:
+
+  | Event | Description |
+  |---|---|
+  | `resource.created` | A new resource has been submitted for indexing. |
+  | `resource.updated` | A resource's title or tags have been modified. |
+  | `resource.deleted` | A resource has been permanently removed. |
+  | `search.completed` | A search query has been executed by a workspace member. |
+  | `collection.updated` | A collection's contents or metadata have changed. |
+  | `member.invited` | A new member has been invited to the workspace. |
+</ParamField>
+
+<ParamField body="workspace_id" type="string" required>
+  The workspace to scope this webhook to. Only events originating from this workspace will be delivered.
+</ParamField>
+
+<ParamField body="secret" type="string">
+  An optional shared secret used to generate an HMAC-SHA256 signature for every delivery. When provided, Google includes an `X-Google-Signature` header on each request so you can verify authenticity. See [Verifying Webhook Signatures](#verifying-webhook-signatures) below.
+</ParamField>
+
+### Response Fields
+
+<ResponseField name="id" type="string">
+  Unique identifier for the newly created webhook.
+</ResponseField>
+
+<ResponseField name="url" type="string">
+  The destination URL registered for this webhook.
+</ResponseField>
+
+<ResponseField name="events" type="array of strings">
+  The list of event types this webhook is subscribed to.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Current delivery status of the webhook. `active` means Google is delivering events. `disabled` means delivery has been paused, typically due to repeated delivery failures.
+</ResponseField>
+
+<ResponseField name="created_at" type="string">
+  ISO 8601 timestamp recording when the webhook was created.
+</ResponseField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.google.com/v1/webhooks \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/hooks/google",
+    "events": ["resource.created", "resource.deleted", "member.invited"],
+    "workspace_id": "ws_01abc123",
+    "secret": "my_webhook_secret_value"
+  }'
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    "https://api.google.com/v1/webhooks",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    json={
+        "url": "https://example.com/hooks/google",
+        "events": ["resource.created", "resource.deleted", "member.invited"],
+        "workspace_id": "ws_01abc123",
+        "secret": "my_webhook_secret_value",
+    },
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+**Example Response**
+
+```json
+{
+  "id": "wh_3rt5n",
+  "url": "https://example.com/hooks/google",
+  "events": ["resource.created", "resource.deleted", "member.invited"],
+  "status": "active",
+  "created_at": "2024-07-10T12:00:00Z"
+}
+```
+
+---
+
+## Get a Webhook
+
+<br />
+
+`GET /v1/webhooks/{id}`
+
+Returns a single webhook by its unique identifier, including its subscribed events and current delivery status.
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The unique identifier of the webhook to retrieve.
+</ParamField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl https://api.google.com/v1/webhooks/wh_3rt5n \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.google.com/v1/webhooks/wh_3rt5n",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+---
+
+## Delete a Webhook
+
+<br />
+
+`DELETE /v1/webhooks/{id}`
+
+Permanently removes a webhook and immediately stops all event delivery to its URL. In-flight deliveries at the time of deletion may still complete. This action cannot be undone.
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The unique identifier of the webhook to delete.
+</ParamField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X DELETE https://api.google.com/v1/webhooks/wh_3rt5n \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.delete(
+    "https://api.google.com/v1/webhooks/wh_3rt5n",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+)
+
+# Returns 204 No Content on success
+print(response.status_code)
+```
+
+</CodeGroup>
+
+A successful deletion returns `204 No Content` with an empty response body.
+
+---
+
+## Webhook Payload Structure
+
+When an event fires, Google sends a `POST` request to your registered URL with a JSON body. Every payload follows the same envelope structure regardless of event type, with an `event` field identifying what happened and a `data` object containing event-specific details.
+
+**Example Payload — `resource.created`**
+
+```json
+{
+  "id": "evt_7hq4z",
+  "event": "resource.created",
+  "workspace_id": "ws_01abc123",
+  "created_at": "2024-07-10T12:05:33Z",
+  "data": {
+    "id": "res_9xk2m",
+    "title": "Getting Started with Google Workspaces",
+    "url": "https://example.com/docs/getting-started",
+    "status": "indexing",
+    "tags": ["docs", "public"],
+    "created_at": "2024-07-10T12:05:30Z"
+  }
+}
+```
+
+**Example Payload — `member.invited`**
+
+```json
+{
+  "id": "evt_2kp9w",
+  "event": "member.invited",
+  "workspace_id": "ws_01abc123",
+  "created_at": "2024-07-10T13:00:00Z",
+  "data": {
+    "email": "newmember@example.com",
+    "invited_by": "usr_4hf82k",
+    "role": "editor"
+  }
+}
+```
+
+Google expects your endpoint to respond with a `2xx` HTTP status code within **5 seconds**. If your endpoint times out or returns a non-`2xx` response, Google retries delivery with exponential backoff for up to 24 hours before marking the webhook as `disabled`.
+
+---
+
+## Verifying Webhook Signatures
+
+When you create a webhook with a `secret`, Google includes an `X-Google-Signature` header on every delivery. The value is a SHA-256 HMAC of the raw request body, prefixed with `sha256=`. Verifying this signature before processing the payload ensures the request genuinely originated from Google and was not tampered with in transit.
+
+Use a constant-time comparison function — such as `hmac.compare_digest` in Python — to prevent timing attacks during verification.
+
+```python
+import hmac
+import hashlib
+
+
+def verify_signature(
+    payload_body: bytes,
+    secret: str,
+    signature_header: str,
+) -> bool:
+    """Return True if the X-Google-Signature header matches the expected HMAC."""
+    expected = hmac.new(
+        secret.encode(),
+        payload_body,
+        hashlib.sha256,
+    ).hexdigest()
+    return hmac.compare_digest(f"sha256={expected}", signature_header)
+```
+
+Call this function at the start of your webhook handler before you take any action on the payload:
+
+```python
+from flask import Flask, request, abort
+
+app = Flask(__name__)
+WEBHOOK_SECRET = "my_webhook_secret_value"
+
+
+@app.route("/hooks/google", methods=["POST"])
+def handle_webhook():
+    signature = request.headers.get("X-Google-Signature", "")
+
+    if not verify_signature(request.data, WEBHOOK_SECRET, signature):
+        abort(403, "Invalid signature")
+
+    event = request.json
+    print(f"Received event: {event['event']}")
+    return "", 200
+```

@@ -1,0 +1,76 @@
+---
+title: "Google API Error Codes and How to Handle Them"
+sidebarTitle: "Errors"
+description: "Understand Google API HTTP error codes from 400 to 500, the standard error response format, and how to handle rate limits and server errors."
+---
+
+When a request cannot be completed successfully, the Google API returns an HTTP status code in the `4xx` or `5xx` range alongside a structured JSON body that explains what went wrong. Reading both the status code and the `error.code` field together gives you everything you need to surface a clear message to your users or trigger the correct recovery path in your code.
+
+## Error Response Format
+
+Every error response shares the same envelope structure regardless of the specific error type.
+
+```json
+{
+  "error": {
+    "code": "unauthorized",
+    "message": "API key is missing or invalid.",
+    "status": 401
+  }
+}
+```
+
+<ResponseField name="error" type="object">
+  The top-level wrapper present on all error responses.
+
+  <Expandable title="error fields">
+    <ResponseField name="code" type="string">
+      A machine-readable slug identifying the error type, such as `unauthorized` or `rate_limit_exceeded`. Use this field for programmatic error handling.
+    </ResponseField>
+    <ResponseField name="message" type="string">
+      A human-readable description of the error suitable for logging or display. The wording may change between releases; rely on `code` for branching logic.
+    </ResponseField>
+    <ResponseField name="status" type="integer">
+      The HTTP status code, mirrored inside the body for convenience.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Error Code Reference
+
+| Status | Code | Meaning |
+|--------|------|---------|
+| `400`  | `bad_request` | The request body is malformed or a required parameter is missing. Check your JSON syntax and confirm all required fields are present. |
+| `401`  | `unauthorized` | No API key was provided, or the key is invalid or expired. Verify your `Authorization` header. |
+| `403`  | `forbidden` | The request is authenticated but your account lacks permission to perform this action. Review the required scopes for the endpoint. |
+| `404`  | `not_found` | The requested resource does not exist. Double-check the resource ID or path in your request. |
+| `409`  | `conflict` | A resource with the same unique identifier already exists. Use `PUT` or `PATCH` to update an existing resource instead. |
+| `422`  | `validation_error` | The request was well-formed but failed business-rule validation. The `message` field describes which field or constraint caused the failure. |
+| `429`  | `rate_limit_exceeded` | You have exceeded your plan's request quota for the current window. Wait until `X-RateLimit-Reset` before retrying. |
+| `500`  | `internal_server_error` | An unexpected error occurred on Google's servers. The request may succeed if you retry after a short delay. |
+
+<Tip>
+  Implement **exponential backoff with jitter** when you receive a `429` or `500` response. Start with a one-second delay, double it on each successive failure, and add a small random offset to prevent thundering-herd spikes. Cap your retry window at around 32 seconds and set a maximum retry count (typically 5) before surfacing the error to the caller. For `429` responses, inspect the `X-RateLimit-Reset` header to know the earliest time your quota will be restored and use that as your minimum wait.
+</Tip>
+
+## Handling Specific Errors
+
+### 400 Bad Request
+
+Validate your request payload against the endpoint's parameter schema before sending. Pay attention to required fields, correct data types, and enum values. The `message` field usually identifies the offending parameter by name.
+
+### 401 Unauthorized
+
+Confirm that your `Authorization` header is present and uses the exact format `Bearer <key>`. If you recently rotated your key, ensure the new key is deployed everywhere. See the [Authentication guide](/api/authentication) for key rotation steps.
+
+### 403 Forbidden
+
+Your credentials are valid but the associated account or OAuth scope does not permit the operation. Check the endpoint documentation for the required scope and request additional permissions from the Google Developer Console if needed.
+
+### 422 Unprocessable Entity
+
+Unlike a `400`, a `422` means the server understood your request but rejected it due to a semantic constraint — for example, setting an end date before a start date. Read the `message` closely; it identifies the specific field and rule that failed.
+
+### 429 Too Many Requests
+
+Slow down your request rate and apply the exponential backoff strategy described in the tip above. If you consistently hit this limit, consider upgrading to the Enterprise plan for a higher quota. See the [API Introduction](/api/introduction) for rate-limit details.

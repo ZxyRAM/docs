@@ -1,0 +1,120 @@
+---
+title: "Google Data Model: Entities and Relationships"
+sidebarTitle: "Data Model"
+description: "Learn about the Users, Workspaces, Resources, Collections, and Queries that make up the Google data model."
+---
+
+Everything you create, search, and share on Google maps to a small set of well-defined entities. Understanding those entities — what they are, what attributes they carry, and how they relate to each other — makes the platform easier to navigate in the UI and much easier to work with through the API. The sections below define each entity and describe how they fit together.
+
+## Entities at a Glance
+
+| Entity | What it represents | Owned by |
+|---|---|---|
+| **User** | An authenticated account holder | Themselves |
+| **Workspace** | A top-level container for resources and members | One or more owners |
+| **Resource** | A single piece of indexed content | A workspace |
+| **Collection** | A named group of resources | A workspace |
+| **Query** | A saved or ad-hoc search expression | A user or workspace |
+
+---
+
+## User
+
+A **User** is the account holder — the authenticated identity that logs in, owns API keys, and belongs to one or more workspaces.
+
+| Attribute | Type | Description |
+|---|---|---|
+| `id` | string | Unique identifier for the user. |
+| `email` | string | Primary email address used for login and notifications. |
+| `display_name` | string | Human-readable name shown in the UI and API responses. |
+| `avatar_url` | string (URL) | Profile picture served from Google's CDN. |
+| `api_keys` | array | List of API keys scoped to workspaces the user owns. |
+| `workspace_memberships` | array | List of workspace IDs and the user's role in each. |
+| `created_at` | ISO 8601 | Timestamp of account creation. |
+
+---
+
+## Workspace
+
+A **Workspace** is the top-level organizational container. Every resource, collection, member, and integration lives inside a workspace. Users can belong to multiple workspaces simultaneously.
+
+| Attribute | Type | Description |
+|---|---|---|
+| `id` | string | Unique identifier for the workspace. |
+| `name` | string | Display name shown in the workspace switcher. |
+| `slug` | string | URL-safe identifier used in API paths. |
+| `members` | array | List of users with their assigned roles. |
+| `default_role` | enum | Role assigned to new members automatically (`viewer` by default). |
+| `integrations` | array | Registered webhooks and OAuth apps. |
+| `settings` | object | Workspace-level configuration, including indexing preferences. |
+| `created_at` | ISO 8601 | Timestamp of workspace creation. |
+
+---
+
+## Resource
+
+A **Resource** is a single piece of indexed content — a web page, document, or link that Google has crawled and made searchable.
+
+| Attribute | Type | Description |
+|---|---|---|
+| `id` | string | Unique identifier for the resource. |
+| `workspace_id` | string | The workspace this resource belongs to. |
+| `title` | string | Title extracted or assigned at index time. |
+| `url` | string (URL) | Canonical URL of the content. |
+| `snippet` | string | Short excerpt shown in search results. |
+| `tags` | array | User-defined labels for filtering and organization. |
+| `metadata` | object | Arbitrary key-value pairs attached at index time. |
+| `relevance_score` | float | Query-time ranking score (present in search responses only). |
+| `indexed_at` | ISO 8601 | Timestamp of the most recent index operation. |
+
+<Note>
+  Resources are **immutable once indexed**. The `title`, `url`, and `metadata` fields reflect the state of the content at index time and are not updated in place. If the source content changes, Google creates a new index entry and the old resource is superseded — it does not disappear from existing collections or saved queries until you explicitly remove it or re-index the URL.
+</Note>
+
+---
+
+## Collection
+
+A **Collection** is a named, curated group of resources. Collections persist independently of any query — you build them by hand or by saving search results, and they stay intact as your workspace evolves.
+
+| Attribute | Type | Description |
+|---|---|---|
+| `id` | string | Unique identifier for the collection. |
+| `workspace_id` | string | The workspace this collection belongs to. |
+| `name` | string | Human-readable name for the collection. |
+| `description` | string | Optional longer description of the collection's purpose. |
+| `resource_ids` | array | Ordered list of resource IDs in this collection. |
+| `visibility` | enum | `workspace` (all members) or `private` (owner only). |
+| `shared_with` | array | List of user IDs or roles with explicit access overrides. |
+| `created_by` | string | User ID of the collection's creator. |
+| `updated_at` | ISO 8601 | Timestamp of the last change to the collection. |
+
+---
+
+## Query
+
+A **Query** represents a search expression — either ad-hoc (run once and discarded) or saved (persisted for reuse). Saved queries are workspace objects and can be shared with other members.
+
+| Attribute | Type | Description |
+|---|---|---|
+| `id` | string | Unique identifier (present only for saved queries). |
+| `workspace_id` | string | The workspace context the query runs against. |
+| `expression` | string | The raw search string, including any operators and filters. |
+| `filters` | object | Structured filter criteria (`type`, `date_range`, `tags`, etc.). |
+| `sort` | enum | Result ordering: `relevance`, `date_asc`, or `date_desc`. |
+| `saved` | boolean | `true` if the query is persisted; `false` for ad-hoc queries. |
+| `name` | string | Human-readable label for saved queries. |
+| `created_by` | string | User ID of the query's creator. |
+| `last_run_at` | ISO 8601 | Timestamp of the most recent execution. |
+
+---
+
+## Entity Relationships
+
+The diagram below summarizes how the five entities relate to each other:
+
+- A **User** belongs to one or more **Workspaces** through a membership record.
+- A **Workspace** contains zero or more **Resources**, **Collections**, and **Queries**.
+- A **Collection** references zero or more **Resources** (many-to-many).
+- A **Query** is scoped to a single **Workspace** and can be owned by a **User** or shared workspace-wide.
+- A **Resource** belongs to exactly one **Workspace** and can appear in multiple **Collections**.

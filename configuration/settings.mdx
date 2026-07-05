@@ -1,0 +1,116 @@
+---
+title: "Google Settings: Workspace and Account Options"
+sidebarTitle: "Settings"
+description: "Configure your Google workspace: general options, search behavior, display preferences, data retention, and data export."
+---
+
+Google gives you granular control over how your workspace looks, behaves, and stores data. Use the Settings panel — accessible from your account avatar in the top-right corner — to adjust everything from your workspace name to how long your search history is retained. Changes you make here apply to your personal account unless you are a workspace admin making organization-wide changes.
+
+<Accordion title="General Settings">
+  General settings control the foundational identity and locale of your workspace.
+
+  | Setting | Description | Default |
+  |---|---|---|
+  | **Workspace Name** | The display name shown to all members of your workspace. Keep it short and recognizable. | Your account email prefix |
+  | **Description** | A brief summary of your workspace's purpose. Shown on invite screens and workspace-switcher menus. | *(empty)* |
+  | **Timezone** | Sets the timezone used for scheduling, timestamps, and digest delivery times. | Detected from browser |
+  | **Language** | The display language for the Google interface. Supported languages include English, Spanish, French, German, Japanese, and more. | Detected from browser |
+
+  To update any of these values:
+
+  1. Navigate to **Settings → General**.
+  2. Edit the field you want to change.
+  3. Click **Save Changes**.
+
+  <Note>
+    Workspace name and description changes are visible to all workspace members immediately after saving.
+  </Note>
+</Accordion>
+
+<Accordion title="Search Settings">
+  Search settings let you fine-tune how Google retrieves and filters results across your workspace.
+
+  | Setting | Description | Default |
+  |---|---|---|
+  | **Default Result Count** | The number of results returned per query when no explicit `limit` parameter is provided. Accepted values: `10`, `25`, `50`, `100`. | `25` |
+  | **Safe Search** | Filters explicit or sensitive content from search results. Options: **Strict**, **Moderate**, **Off**. | `Moderate` |
+  | **Content Filters** | Lets you exclude specific content types (images, videos, news, web) from appearing in default search results. | All types enabled |
+
+  To configure search behavior:
+
+  1. Go to **Settings → Search**.
+  2. Adjust the sliders and dropdowns for each option.
+  3. Click **Apply**.
+
+  <Tip>
+    If you are building on top of the Google API, note that per-request parameters always override these workspace-level defaults.
+  </Tip>
+</Accordion>
+
+<Accordion title="Display Settings">
+  Display settings control the visual layout of your Google workspace and search result pages.
+
+  | Setting | Description | Default |
+  |---|---|---|
+  | **Results Per Page** | How many results appear on each paginated page of search results. Options: `10`, `20`, `50`. | `20` |
+  | **Density** | Choose between **Compact** (smaller row height, more results visible at once) and **Comfortable** (more whitespace, easier scanning). | `Comfortable` |
+
+  To change your display preferences:
+
+  1. Open **Settings → Display**.
+  2. Select your preferred **Results Per Page** value.
+  3. Toggle **Density** between Compact and Comfortable.
+  4. Your changes take effect immediately — no save button required.
+
+  <Info>
+    Display settings are per-user and do not affect how other workspace members see their results.
+  </Info>
+</Accordion>
+
+<Accordion title="Data Retention">
+  Google stores your search history to power features like autocomplete, personalized ranking, and activity reports. You control how long that history is kept and can delete it at any time.
+
+  | Retention Period | Behavior |
+  |---|---|
+  | **3 months** | History older than 90 days is automatically purged. |
+  | **12 months** | History older than 1 year is automatically purged. |
+  | **36 months** | History older than 3 years is automatically purged. |
+  | **Until I delete it** | History is kept indefinitely. You must manually clear it. |
+
+  **To change your retention period:**
+
+  1. Go to **Settings → Privacy → Data Retention**.
+  2. Select your preferred retention window from the dropdown.
+  3. Click **Save**. Future history will be pruned on the new schedule.
+
+  **To clear your search history manually:**
+
+  1. Go to **Settings → Privacy → Search History**.
+  2. Click **Clear All History**, or use the date-range picker to clear history from a specific period.
+  3. Confirm the deletion in the dialog that appears.
+
+  <Warning>
+    Clearing your search history is permanent and cannot be undone. Autocomplete suggestions and personalized rankings will reset after you clear history.
+  </Warning>
+</Accordion>
+
+<Accordion title="Exporting Your Data">
+  You can export a copy of all data Google holds for your account, including search history, saved collections, workspace metadata, and account settings.
+
+  **To request a data export:**
+
+  1. Navigate to **Settings → Privacy → Export Data**.
+  2. Select the data types you want to include:
+     - Search history
+     - Saved collections
+     - Workspace settings
+     - Account profile
+  3. Choose an export format: **JSON** or **CSV**.
+  4. Click **Request Export**.
+
+  Google will prepare your archive and send a download link to your account email address. Large exports may take up to 24 hours to prepare. The download link is valid for 7 days.
+
+  <Note>
+    Workspace admins can export organization-wide data from the **Admin Console → Data Management → Export** section.
+  </Note>
+</Accordion>

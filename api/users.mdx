@@ -1,0 +1,323 @@
+---
+title: "Users API: Profile and API Key Management"
+sidebarTitle: "Users"
+description: "Retrieve and update your Google user profile, list API keys, create new keys with optional expiry, and revoke existing keys via the API."
+---
+
+The Users API gives you programmatic access to your Google account profile and API key lifecycle. You can read and update your display name, avatar, and timezone, as well as create scoped API keys with optional expiration dates and revoke them when they are no longer needed.
+
+## Get Your Profile
+
+<br />
+
+`GET /v1/users/me`
+
+Returns the profile of the currently authenticated user. No additional parameters are required — the user is inferred from the API key or OAuth token used to authenticate the request.
+
+### Response Fields
+
+<ResponseField name="id" type="string">
+  Unique identifier for your Google user account.
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  The primary email address associated with your account.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Your display name as shown across Google products.
+</ResponseField>
+
+<ResponseField name="avatar_url" type="string">
+  Publicly accessible URL to your profile picture. `null` if no avatar has been set.
+</ResponseField>
+
+<ResponseField name="created_at" type="string">
+  ISO 8601 timestamp recording when your account was created.
+</ResponseField>
+
+<ResponseField name="plan" type="string">
+  Your current subscription plan. Possible values: `free`, `pro`, `enterprise`.
+</ResponseField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl https://api.google.com/v1/users/me \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.google.com/v1/users/me",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+**Example Response**
+
+```json
+{
+  "id": "usr_4hf82k",
+  "email": "alex@example.com",
+  "name": "Alex Rivera",
+  "avatar_url": "https://cdn.google.com/avatars/usr_4hf82k.png",
+  "created_at": "2023-11-20T08:00:00Z",
+  "plan": "pro"
+}
+```
+
+---
+
+## Update Your Profile
+
+<br />
+
+`PATCH /v1/users/me`
+
+Updates one or more fields on your profile. Only the fields you include in the request body are modified — all other fields retain their current values.
+
+### Body Parameters
+
+<ParamField body="name" type="string">
+  Your new display name. Maximum length is 100 characters.
+</ParamField>
+
+<ParamField body="avatar_url" type="string">
+  A publicly accessible HTTPS URL pointing to your new profile picture. Pass `null` to remove your current avatar.
+</ParamField>
+
+<ParamField body="timezone" type="string">
+  Your preferred timezone in IANA format, for example `America/New_York` or `Europe/London`. Used for scheduling features and timestamp display.
+</ParamField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X PATCH https://api.google.com/v1/users/me \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Alex R.",
+    "timezone": "America/Los_Angeles"
+  }'
+```
+
+```python Python
+import requests
+
+response = requests.patch(
+    "https://api.google.com/v1/users/me",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    json={
+        "name": "Alex R.",
+        "timezone": "America/Los_Angeles",
+    },
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+**Example Response**
+
+```json
+{
+  "id": "usr_4hf82k",
+  "email": "alex@example.com",
+  "name": "Alex R.",
+  "avatar_url": "https://cdn.google.com/avatars/usr_4hf82k.png",
+  "created_at": "2023-11-20T08:00:00Z",
+  "plan": "pro"
+}
+```
+
+---
+
+## List API Keys
+
+<br />
+
+`GET /v1/users/me/api-keys`
+
+Returns all API keys associated with your account, ordered by creation date. The secret `key` value is **not** returned by this endpoint — it is only shown once at creation time.
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl https://api.google.com/v1/users/me/api-keys \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.google.com/v1/users/me/api-keys",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+**Example Response**
+
+```json
+{
+  "api_keys": [
+    {
+      "id": "key_8mn3x",
+      "name": "Production App",
+      "created_at": "2024-01-10T12:00:00Z",
+      "expires_at": "2025-01-10T12:00:00Z"
+    },
+    {
+      "id": "key_2pq7r",
+      "name": "Local Dev",
+      "created_at": "2024-05-01T09:30:00Z",
+      "expires_at": null
+    }
+  ]
+}
+```
+
+---
+
+## Create an API Key
+
+<br />
+
+`POST /v1/users/me/api-keys`
+
+Generates a new API key for your account. The plaintext `key` value is returned **only once** in this response — store it securely immediately. If you lose it, you must revoke the key and create a new one.
+
+### Body Parameters
+
+<ParamField body="name" type="string" required>
+  A descriptive label to identify the key's purpose, for example `Production App` or `CI Pipeline`. Maximum length is 128 characters.
+</ParamField>
+
+<ParamField body="expires_at" type="string">
+  Optional expiration date and time in ISO 8601 format, for example `2025-12-31T23:59:59Z`. If omitted, the key never expires.
+</ParamField>
+
+### Response Fields
+
+<ResponseField name="id" type="string">
+  Unique identifier for the newly created API key.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The label you assigned to this key.
+</ResponseField>
+
+<ResponseField name="key" type="string">
+  The plaintext API key value. This is the **only time** this value is returned. Copy and store it immediately in a secure location.
+</ResponseField>
+
+<ResponseField name="created_at" type="string">
+  ISO 8601 timestamp recording when the key was created.
+</ResponseField>
+
+<ResponseField name="expires_at" type="string">
+  ISO 8601 timestamp after which the key will no longer authenticate requests. `null` if the key has no expiration.
+</ResponseField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.google.com/v1/users/me/api-keys \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Production App",
+    "expires_at": "2025-12-31T23:59:59Z"
+  }'
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    "https://api.google.com/v1/users/me/api-keys",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    json={
+        "name": "Production App",
+        "expires_at": "2025-12-31T23:59:59Z",
+    },
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+**Example Response**
+
+```json
+{
+  "id": "key_5zw1v",
+  "name": "Production App",
+  "key": "ggl_live_aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890",
+  "created_at": "2024-07-01T10:00:00Z",
+  "expires_at": "2025-12-31T23:59:59Z"
+}
+```
+
+---
+
+## Revoke an API Key
+
+<br />
+
+`DELETE /v1/users/me/api-keys/{id}`
+
+Permanently revokes an API key. Any in-flight requests using the revoked key will fail immediately with a `401 Unauthorized` response. This action cannot be undone.
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The unique identifier of the API key to revoke, as returned by `POST /v1/users/me/api-keys` or `GET /v1/users/me/api-keys`.
+</ParamField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X DELETE https://api.google.com/v1/users/me/api-keys/key_5zw1v \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.delete(
+    "https://api.google.com/v1/users/me/api-keys/key_5zw1v",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+)
+
+# Returns 204 No Content on success
+print(response.status_code)
+```
+
+</CodeGroup>
+
+A successful revocation returns `204 No Content` with an empty response body.

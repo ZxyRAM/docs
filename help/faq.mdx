@@ -1,0 +1,100 @@
+---
+title: "Frequently Asked Questions about Google"
+sidebarTitle: "FAQ"
+description: "Answers to common questions about Google accounts, workspaces, API rate limits, search operators, data export, and security."
+---
+
+Whether you're just getting started or managing a growing team, you'll find answers to the most common questions about Google accounts, workspaces, search, and data security below.
+
+<AccordionGroup>
+  <Accordion title="How do I reset my password?">
+    To reset your password, navigate to the Google sign-in page and click **Forgot password?** beneath the password field. Enter the email address associated with your account and click **Send reset link**. Check your inbox for an email from `no-reply@google.com` and follow the link inside — it expires after 60 minutes.
+
+    If you don't receive the email within a few minutes, check your spam folder or verify that you're using the correct email address. You can also contact [support@google.com](mailto:support@google.com) for manual assistance.
+  </Accordion>
+
+  <Accordion title="How do I change my email address?">
+    To update your account email address:
+
+    1. Sign in and open **Account Settings** from the top-right avatar menu.
+    2. Under the **Profile** tab, click **Edit** next to your current email address.
+    3. Enter your new email address and confirm it in the second field.
+    4. Click **Save changes** — Google sends a verification link to your new address.
+    5. Open the verification email and click **Confirm new email** to complete the change.
+
+    Your old email address remains active for sign-in until you confirm the new one. If you don't receive the verification email within five minutes, check your spam folder.
+  </Accordion>
+
+  <Accordion title="Can I have multiple workspaces?">
+    Yes. Google lets you create and belong to multiple workspaces under a single account. To create a new workspace, click the workspace switcher in the top-left corner of the dashboard and select **Create new workspace**. Give it a name, choose a plan, and invite collaborators.
+
+    To switch between workspaces, open the same workspace switcher and select any workspace listed under **Your workspaces**. Each workspace has its own members, settings, billing, and data — nothing is shared between them unless you explicitly configure integrations to do so.
+  </Accordion>
+
+  <Accordion title="What happens when I hit my API rate limit?">
+    When you exceed your plan's API rate limit, Google returns an HTTP **429 Too Many Requests** response. Your requests are not queued — they are rejected until the rate-limit window resets.
+
+    Each response includes the following headers to help you manage your usage:
+
+    | Header | Description |
+    |---|---|
+    | `X-RateLimit-Limit` | Maximum requests allowed per window |
+    | `X-RateLimit-Remaining` | Requests remaining in the current window |
+    | `X-RateLimit-Reset` | Unix timestamp when the window resets |
+
+    Implement exponential backoff in your client to handle 429 responses gracefully. If you routinely hit limits, consider upgrading your plan or requesting a custom quota increase via [support@google.com](mailto:support@google.com).
+  </Accordion>
+
+  <Accordion title="How do I delete a workspace?">
+    Deleting a workspace permanently removes all its data, members, and settings. This action cannot be undone.
+
+    To delete a workspace:
+
+    1. Open **Workspace Settings** from the sidebar.
+    2. Scroll to the **Danger Zone** section at the bottom of the page.
+    3. Click **Delete workspace** and read the confirmation dialog carefully.
+    4. Type the exact workspace name to confirm, then click **Delete permanently**.
+
+    Only the workspace **Owner** can perform this action. If you are not the owner, ask the owner to transfer ownership to you first under **Settings → Members → Transfer ownership**.
+  </Accordion>
+
+  <Accordion title="How do I export my data?">
+    You can export all workspace data at any time from **Workspace Settings → Data & Privacy → Export data**.
+
+    1. Click **Request export** to generate an archive.
+    2. Google prepares your export — depending on workspace size this can take up to 24 hours.
+    3. Once ready, you receive an email with a secure download link valid for 7 days.
+
+    The export archive includes search indexes, saved queries, workspace members, audit logs, and API usage history in JSON and CSV formats. If you need a custom export format for compliance purposes, contact your account manager or [support@google.com](mailto:support@google.com).
+  </Accordion>
+
+  <Accordion title="What search operators are supported?">
+    Google supports a rich set of search operators to help you pinpoint results quickly. Use them directly in the search bar:
+
+    | Operator | Example | Description |
+    |---|---|---|
+    | `"..."` | `"exact phrase"` | Match an exact phrase |
+    | `-` | `cats -dogs` | Exclude a term |
+    | `OR` | `cats OR dogs` | Match either term |
+    | `site:` | `site:docs.google.com` | Restrict results to a domain |
+    | `type:` | `type:pdf` | Filter by file type |
+    | `before:` | `before:2024-01-01` | Results indexed before a date |
+    | `after:` | `after:2023-06-01` | Results indexed after a date |
+    | `title:` | `title:onboarding` | Match term in document title only |
+
+    You can combine multiple operators in a single query, for example: `title:onboarding site:docs.google.com after:2023-01-01`.
+  </Accordion>
+
+  <Accordion title="How is my data kept secure?">
+    Google protects your data with multiple layers of security:
+
+    - **Encryption in transit** — all data between your browser or API client and Google's servers is encrypted using TLS 1.2 or higher.
+    - **Encryption at rest** — stored data is encrypted with AES-256.
+    - **Access controls** — role-based permissions ensure team members only access what they need.
+    - **SOC 2 Type II compliance** — Google undergoes annual third-party audits to verify security controls.
+    - **GDPR & CCPA** — Google honors data subject rights including access, correction, and deletion requests.
+    - **Audit logs** — every action in your workspace is logged and accessible under **Settings → Audit Log**.
+
+    To review your workspace's security settings or request a copy of our latest security report, contact [support@google.com](mailto:support@google.com).
+  </Accordion>
+</AccordionGroup>

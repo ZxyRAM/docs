@@ -1,0 +1,130 @@
+---
+title: "Set Up Your Google Account and Profile"
+sidebarTitle: "Account Setup"
+description: "Configure your Google account: verify your email, set up your profile, enable two-factor authentication, and manage your billing plan."
+---
+
+Your Google account is the foundation for every service and API that Google provides. This guide walks you through the full setup process — from creating your account and verifying your identity to locking it down with two-factor authentication and choosing the right billing plan.
+
+## Initial Account Setup
+
+<Steps>
+  <Step title="Create Your Account">
+    Go to [google.com](https://google.com) and click **Create account**. Google offers two ways to register:
+
+    <CardGroup cols={2}>
+      <Card title="Email & Password" icon="envelope">
+        Enter your name, choose a Gmail address or use an existing email, and set a strong password of at least 12 characters.
+      </Card>
+      <Card title="Google OAuth" icon="key">
+        If your organization uses Google Workspace, click **Sign in with Google** to authenticate using your existing corporate credentials — no separate password required.
+      </Card>
+    </CardGroup>
+
+    Click **Next** and accept the Terms of Service to continue.
+  </Step>
+
+  <Step title="Verify Your Email Address">
+    Google sends a six-digit verification code to the email address you registered with. Open your inbox, locate the email from Google, and enter the code on the verification screen.
+
+    <Note>
+      The verification code expires after **10 minutes**. If you don't receive the email, check your spam folder or click **Resend code** on the verification page.
+    </Note>
+
+    Once you enter the correct code, your account becomes active and you are redirected to your Google dashboard.
+  </Step>
+
+  <Step title="Set Up Your Profile">
+    Open the account menu in the top-right corner and select **Manage your Google Account**. Navigate to the **Personal info** tab to complete your profile.
+
+    Fill in the following details:
+
+    | Field | Description |
+    |---|---|
+    | **Display name** | The name shown across Google services and in API responses. |
+    | **Profile photo** | Upload a JPEG or PNG (max 5 MB). Recommended size is 256 × 256 px. |
+    | **Time zone** | Set your local time zone so that logs, billing cycles, and scheduled jobs display in the correct time. |
+
+    Click **Save** after updating each section. Changes take effect immediately across all Google products.
+  </Step>
+
+  <Step title="Enable Two-Factor Authentication (2FA)">
+    Navigate to **Account Settings → Security → 2-Step Verification** and click **Get started**. Google supports several second-factor methods:
+
+    <CardGroup cols={3}>
+      <Card title="Authenticator App" icon="mobile">
+        Use Google Authenticator, Authy, or any TOTP-compatible app to generate time-based codes.
+      </Card>
+      <Card title="SMS Code" icon="message">
+        Receive a one-time code via text message to your registered phone number.
+      </Card>
+      <Card title="Hardware Key" icon="shield">
+        Register a FIDO2 / WebAuthn hardware security key (e.g., YubiKey) for the strongest protection.
+      </Card>
+    </CardGroup>
+
+    Select your preferred method, follow the on-screen prompts to register your device, and click **Turn on** to activate 2FA.
+
+    <Note>
+      Enabling 2FA is **strongly recommended**. It protects your account — and any API keys associated with it — against unauthorized access even if your password is compromised.
+    </Note>
+  </Step>
+</Steps>
+
+## Additional Account Management
+
+<AccordionGroup>
+  <Accordion title="Managing Billing and Plan" icon="credit-card">
+    Google offers several plans to match your usage needs. To view or change your plan, go to **Account Settings → Billing**.
+
+    **Available plans:**
+
+    | Plan | Monthly Cost | API Requests / Month | Support |
+    |---|---|---|---|
+    | Free | $0 | 1,000 | Community |
+    | Starter | $29 | 100,000 | Email |
+    | Pro | $99 | 1,000,000 | Priority Email |
+    | Enterprise | Custom | Unlimited | Dedicated |
+
+    **To upgrade your plan:**
+
+    1. Click **Upgrade plan** on the Billing page.
+    2. Select the plan that fits your needs.
+    3. Enter your payment details (credit card or bank transfer).
+    4. Click **Confirm upgrade** — your new limits take effect immediately.
+
+    **To update your payment method:**
+
+    1. Go to **Account Settings → Billing → Payment methods**.
+    2. Click **Add payment method** and enter your new card details.
+    3. Click **Set as default** next to the new card, then remove the old one if needed.
+
+    <Warning>
+      Downgrading your plan takes effect at the start of the next billing cycle. Any usage above the new plan's limits during the current cycle is billed at the overage rate.
+    </Warning>
+
+    You can download past invoices as PDFs from **Account Settings → Billing → Invoice history**.
+  </Accordion>
+
+  <Accordion title="Deleting Your Account" icon="trash">
+    Deleting your Google account permanently removes all associated data including your profile, search history, API keys, and billing records. This action **cannot be undone**.
+
+    Before you proceed, consider these alternatives:
+
+    - **Pause API access** — Revoke all API keys from **Account Settings → API Keys** without deleting your account.
+    - **Export your data** — Download a full archive of your data from **Account Settings → Data & Privacy → Download your data**.
+
+    **To permanently delete your account:**
+
+    1. Go to **Account Settings → Data & Privacy → Delete your Google Account**.
+    2. Read the summary of what will be deleted and check each confirmation box.
+    3. Enter your password to confirm your identity.
+    4. Click **Delete account**.
+
+    <Warning>
+      Account deletion is immediate and irreversible. All active API keys are revoked instantly, which will break any applications that depend on them. Ensure you have migrated or shut down dependent services before proceeding.
+    </Warning>
+
+    If your account is on a paid plan, any unused prepaid balance is refunded to your original payment method within 5–10 business days.
+  </Accordion>
+</AccordionGroup>

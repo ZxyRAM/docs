@@ -1,0 +1,173 @@
+---
+title: "Authenticate with Google: API Keys and OAuth"
+sidebarTitle: "Authentication"
+description: "Generate API keys, implement OAuth 2.0 authorization code flow, manage scopes, and follow security best practices for Google API access."
+---
+
+Every request you make to the Google API must be authenticated. Google supports two primary authentication methods: **API keys** for server-to-server integrations and **OAuth 2.0** for applications that act on behalf of end users. Choose the method that matches your use case, and always follow the security guidelines at the end of this page to keep your credentials safe.
+
+## API Keys
+
+An API key is a long-lived credential that authenticates your application directly. Use API keys for backend services, scripts, and automated pipelines where there is no interactive user.
+
+### Generate an API Key
+
+1. Open the [Google Developer Console](https://console.google.com).
+2. Select your project from the project switcher.
+3. Navigate to **Credentials → API Keys → Create API Key**.
+4. Copy the generated key and store it in a secrets manager or environment variable immediately. Google only displays the full key once.
+
+### Pass the Key in Requests
+
+Include your API key in the `Authorization` header as a Bearer token on every request:
+
+```bash
+curl -H "Authorization: Bearer ggl_sk_live_abc123..." \
+  https://api.google.com/v1/search?q=example
+```
+
+### Rotate an API Key
+
+Rotate your keys on a regular schedule or immediately if you suspect a compromise:
+
+1. Go to **Credentials → API Keys**.
+2. Click the three-dot menu next to the key you want to rotate.
+3. Select **Rotate Key**. Google generates a new key and invalidates the old one after a 15-minute grace period.
+4. Update all services that use the old key before the grace period ends.
+
+<Warning>
+  Once the grace period expires, any request using the old key returns a `401 Unauthorized` error. Update your services promptly after rotating.
+</Warning>
+
+---
+
+## OAuth 2.0
+
+Use OAuth 2.0 when your application needs to access Google resources on behalf of a specific user. Google implements the **authorization code flow**, which is the most secure option for server-side web applications.
+
+### Register Your Application
+
+Before you can start the OAuth flow, register a redirect URI:
+
+1. In the Developer Console, navigate to **Credentials → OAuth Apps → New Application**.
+2. Enter your application name and homepage URL.
+3. Add one or more **Redirect URIs** — these must exactly match the `redirect_uri` you send in your authorization requests.
+4. Save the app. Google provides you with a **Client ID** and **Client Secret**.
+
+### Step 1 — Redirect the User to Google
+
+Send the user to Google's authorization endpoint with the required query parameters:
+
+```
+https://auth.google.com/oauth/authorize
+  ?response_type=code
+  &client_id=YOUR_CLIENT_ID
+  &redirect_uri=https://yourapp.com/callback
+  &scope=search:read resources:read
+  &state=RANDOM_STATE_VALUE
+```
+
+Always include a `state` parameter to protect against CSRF attacks.
+
+### Step 2 — Handle the Callback
+
+After the user approves access, Google redirects them to your `redirect_uri` with an authorization `code` in the query string:
+
+```
+https://yourapp.com/callback?code=AUTH_CODE&state=RANDOM_STATE_VALUE
+```
+
+Verify that the returned `state` matches the value you sent in Step 1 before proceeding.
+
+### Step 3 — Exchange the Code for Tokens
+
+Make a server-side POST request to exchange the authorization code for an access token and a refresh token:
+
+```bash
+curl -X POST https://auth.google.com/oauth/token \
+  -d grant_type=authorization_code \
+  -d code=AUTH_CODE \
+  -d redirect_uri=https://yourapp.com/callback \
+  -d client_id=YOUR_CLIENT_ID \
+  -d client_secret=YOUR_CLIENT_SECRET
+```
+
+A successful response returns:
+
+```json
+{
+  "access_token": "ggl_at_live_...",
+  "refresh_token": "ggl_rt_live_...",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "scope": "search:read resources:read"
+}
+```
+
+Store the `refresh_token` securely — you use it to obtain new access tokens without asking the user to re-authenticate.
+
+---
+
+## Available OAuth Scopes
+
+Request only the scopes your application actually needs. Requesting unnecessary scopes reduces user trust and increases your attack surface.
+
+| Scope | Access Granted |
+|---|---|
+| `search:read` | Read-only access to perform searches and retrieve results. |
+| `search:write` | Create and manage saved searches and search configurations. |
+| `resources:read` | Read-only access to resources indexed in the workspace. |
+| `resources:write` | Create, update, and delete indexed resources. |
+| `workspaces:admin` | Full administrative access to workspace settings and members. |
+
+<Note>
+  The `workspaces:admin` scope requires explicit approval from a workspace owner. Users without owner privileges cannot grant this scope through the standard consent screen.
+</Note>
+
+---
+
+## Session Tokens
+
+Access tokens issued by the OAuth flow expire after **3,600 seconds (1 hour)**. When an access token expires, use the refresh token to obtain a new one without user interaction:
+
+```bash
+curl -X POST https://auth.google.com/oauth/token \
+  -d grant_type=refresh_token \
+  -d refresh_token=ggl_rt_live_... \
+  -d client_id=YOUR_CLIENT_ID \
+  -d client_secret=YOUR_CLIENT_SECRET
+```
+
+Refresh tokens do not expire on a fixed schedule but are invalidated if:
+
+- The user revokes access from their Google account settings.
+- You rotate or delete the OAuth application in the Developer Console.
+- The token has not been used for more than **90 days**.
+
+<Tip>
+  Implement proactive token refresh — check the `expires_in` value when you store a token and refresh it a few minutes before expiry rather than waiting for a `401` error.
+</Tip>
+
+---
+
+## Security Best Practices
+
+Protecting your credentials is your responsibility. Follow these practices to minimize risk:
+
+<AccordionGroup>
+  <Accordion title="Never expose keys in client-side code">
+    API keys and OAuth client secrets must never appear in browser JavaScript, mobile app binaries, or public source code repositories. Always load credentials from server-side environment variables or a dedicated secrets manager such as HashiCorp Vault, AWS Secrets Manager, or Google Secret Manager.
+  </Accordion>
+
+  <Accordion title="Rotate API keys quarterly">
+    Set a recurring reminder to rotate every API key at least once every 90 days. Immediately rotate any key you suspect has been exposed — even briefly. Use the 15-minute grace period to update dependent services without downtime.
+  </Accordion>
+
+  <Accordion title="Restrict key permissions and scopes">
+    Assign each API key to a specific project and restrict it to the IP ranges or referrer origins that need it. Request the minimum OAuth scopes required for your application's features.
+  </Accordion>
+
+  <Accordion title="Audit credential usage regularly">
+    Review the **Credentials → Activity Log** in the Developer Console to spot unexpected usage patterns, unfamiliar IP addresses, or spikes in request volume that could indicate a compromised key.
+  </Accordion>
+</AccordionGroup>

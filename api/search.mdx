@@ -1,0 +1,319 @@
+---
+title: "Search API: Query, Save, and Manage Searches"
+sidebarTitle: "Search"
+description: "Run full-text searches, paginate results, save searches for later, and manage saved searches via the Google Search API endpoints."
+---
+
+The Search API lets you run full-text queries across your indexed content, paginate through large result sets using cursors, and persist searches by name for quick reuse. All search endpoints are scoped to your authenticated account and, optionally, to a specific workspace.
+
+## Run a Search Query
+
+<br />
+
+`GET /v1/search`
+
+Executes a full-text search against your indexed resources. Results are ranked by relevance score and can be filtered by tags or scoped to a single workspace. Use the `cursor` field in the response to fetch subsequent pages.
+
+### Query Parameters
+
+<ParamField query="q" type="string" required>
+  The search query string. Supports full-text keywords and phrases. Maximum length is 512 characters.
+</ParamField>
+
+<ParamField query="limit" type="integer" default="10">
+  Number of results to return per page. Minimum is `1`, maximum is `100`.
+</ParamField>
+
+<ParamField query="cursor" type="string">
+  Pagination cursor returned by a previous response as `next_cursor`. Omit this parameter to start from the first page.
+</ParamField>
+
+<ParamField query="filters" type="string">
+  Comma-separated list of tags to filter results by. For example: `docs,public,v2`. Only resources tagged with **all** specified tags are returned.
+</ParamField>
+
+<ParamField query="workspace_id" type="string">
+  Restricts results to resources belonging to the specified workspace. When omitted, results span all workspaces accessible to the authenticated user.
+</ParamField>
+
+### Response Fields
+
+<ResponseField name="query" type="string">
+  The original search query string that was submitted.
+</ResponseField>
+
+<ResponseField name="total" type="integer">
+  Total number of matching results across all pages.
+</ResponseField>
+
+<ResponseField name="next_cursor" type="string">
+  Opaque cursor string to pass as `cursor` on your next request to retrieve the following page. `null` when there are no more pages.
+</ResponseField>
+
+<ResponseField name="results" type="array">
+  Ordered list of search result objects ranked by relevance.
+
+  <Expandable title="result object">
+    <ResponseField name="id" type="string">
+      Unique identifier of the matching resource.
+    </ResponseField>
+
+    <ResponseField name="title" type="string">
+      Title of the resource as stored in your index.
+    </ResponseField>
+
+    <ResponseField name="url" type="string">
+      Canonical URL of the resource.
+    </ResponseField>
+
+    <ResponseField name="snippet" type="string">
+      Short excerpt from the resource content with query terms highlighted using `<em>` tags.
+    </ResponseField>
+
+    <ResponseField name="score" type="number">
+      Relevance score between `0.0` and `1.0`. Higher values indicate a stronger match.
+    </ResponseField>
+
+    <ResponseField name="tags" type="array of strings">
+      Tags associated with the resource.
+    </ResponseField>
+
+    <ResponseField name="created_at" type="string">
+      ISO 8601 timestamp recording when the resource was indexed.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -G https://api.google.com/v1/search \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  --data-urlencode "q=getting started guide" \
+  --data-urlencode "limit=5" \
+  --data-urlencode "filters=docs,public" \
+  --data-urlencode "workspace_id=ws_01abc123"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.google.com/v1/search",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    params={
+        "q": "getting started guide",
+        "limit": 5,
+        "filters": "docs,public",
+        "workspace_id": "ws_01abc123",
+    },
+)
+
+data = response.json()
+print(data)
+```
+
+</CodeGroup>
+
+**Example Response**
+
+```json
+{
+  "query": "getting started guide",
+  "total": 42,
+  "next_cursor": "eyJwYWdlIjoyfQ==",
+  "results": [
+    {
+      "id": "res_9xk2m",
+      "title": "Getting Started with Google Workspaces",
+      "url": "https://example.com/docs/getting-started",
+      "snippet": "This <em>getting started guide</em> walks you through creating your first workspace...",
+      "score": 0.97,
+      "tags": ["docs", "public"],
+      "created_at": "2024-03-15T09:22:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## Save a Search
+
+<br />
+
+`POST /v1/search/saved`
+
+Saves a named search query so you can re-run it later without rebuilding the query parameters. Saved searches are tied to a workspace and visible to all members with access.
+
+### Body Parameters
+
+<ParamField body="name" type="string" required>
+  A human-readable label for this saved search. Maximum length is 128 characters.
+</ParamField>
+
+<ParamField body="query" type="string" required>
+  The search query string to save. Uses the same syntax as the `q` parameter on `GET /v1/search`.
+</ParamField>
+
+<ParamField body="workspace_id" type="string" required>
+  The workspace in which this saved search will be stored.
+</ParamField>
+
+### Response Fields
+
+<ResponseField name="id" type="string">
+  Unique identifier of the saved search.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The label you assigned to this saved search.
+</ResponseField>
+
+<ResponseField name="query" type="string">
+  The stored search query string.
+</ResponseField>
+
+<ResponseField name="created_at" type="string">
+  ISO 8601 timestamp recording when the saved search was created.
+</ResponseField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.google.com/v1/search/saved \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Onboarding Docs",
+    "query": "getting started guide",
+    "workspace_id": "ws_01abc123"
+  }'
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    "https://api.google.com/v1/search/saved",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    json={
+        "name": "Onboarding Docs",
+        "query": "getting started guide",
+        "workspace_id": "ws_01abc123",
+    },
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+**Example Response**
+
+```json
+{
+  "id": "sv_7tz4p",
+  "name": "Onboarding Docs",
+  "query": "getting started guide",
+  "created_at": "2024-06-01T14:05:00Z"
+}
+```
+
+---
+
+## List Saved Searches
+
+<br />
+
+`GET /v1/search/saved`
+
+Returns all saved searches accessible to the authenticated user. Results are ordered by creation date, newest first.
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl https://api.google.com/v1/search/saved \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.google.com/v1/search/saved",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+**Example Response**
+
+```json
+{
+  "saved_searches": [
+    {
+      "id": "sv_7tz4p",
+      "name": "Onboarding Docs",
+      "query": "getting started guide",
+      "created_at": "2024-06-01T14:05:00Z"
+    },
+    {
+      "id": "sv_3qr9w",
+      "name": "API References",
+      "query": "api reference endpoints",
+      "created_at": "2024-05-28T10:30:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## Delete a Saved Search
+
+<br />
+
+`DELETE /v1/search/saved/{id}`
+
+Permanently removes a saved search. This action cannot be undone. The underlying indexed resources are not affected.
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The unique identifier of the saved search to delete, as returned by `POST /v1/search/saved` or `GET /v1/search/saved`.
+</ParamField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X DELETE https://api.google.com/v1/search/saved/sv_7tz4p \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.delete(
+    "https://api.google.com/v1/search/saved/sv_7tz4p",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+)
+
+# Returns 204 No Content on success
+print(response.status_code)
+```
+
+</CodeGroup>
+
+A successful deletion returns `204 No Content` with an empty response body.

@@ -1,0 +1,109 @@
+---
+title: "Customize Your Google Workspace and Search"
+sidebarTitle: "Customization"
+description: "Personalize Google with themes, custom search filters, saved views, notification preferences, and custom domain configuration."
+---
+
+Google is built to adapt to your team's preferences and workflows, not the other way around. You can change how the interface looks, shape the search experience to surface exactly what you care about, set up saved views for recurring queries, tune your notifications, and even serve your workspace from your own domain — all without writing code unless you want to.
+
+## Theme your workspace
+
+Adjust the visual appearance of Google to match your brand or personal preference.
+
+1. Open **Settings → Appearance**.
+2. Under **Color Mode**, select **Light**, **Dark**, or **System** (follows your OS setting).
+3. Under **Accent Color**, pick one of the preset swatches or enter a custom hex value (for example, `#0057FF`).
+4. Click **Save Appearance**. The change applies instantly to every user in your workspace.
+
+<Info>
+  Individual members can override the workspace theme for themselves under their personal **Profile → Appearance** settings. Personal settings always take priority over workspace defaults.
+</Info>
+
+---
+
+## Custom search filters and facets
+
+Default filters (date, source type, file type) cover common needs, but you can create filters tailored to your content — for example, filtering by internal department, document owner, or custom tag.
+
+<Tabs>
+  <Tab title="UI">
+    1. Go to **Settings → Search → Filters** and click **Add Filter**.
+    2. Enter a **Filter Label** (shown in the Filters panel) and choose a **Field** from the dropdown — this is the metadata key Google will filter on.
+    3. Select a **Type**: `Checkbox list`, `Date range`, or `Text input`.
+    4. Toggle **Show by default** if you want this filter to appear expanded for all users.
+    5. Click **Save Filter**. The filter is immediately available on the search results page.
+
+    Reorder filters by dragging the handle on the left of each row in the filter list.
+  </Tab>
+  <Tab title="API">
+    Send a `POST` request to the Filters API to create a custom filter programmatically:
+
+    ```bash
+    curl -X POST https://api.google.com/v1/workspaces/{workspace_id}/filters \
+      -H "Authorization: Bearer {token}" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "label": "Department",
+        "field": "metadata.department",
+        "type": "checkbox_list",
+        "show_by_default": true
+      }'
+    ```
+
+    A successful request returns the new filter object with its assigned `id`. Use a `PATCH` request to the same path with the filter `id` to update or reorder existing filters.
+  </Tab>
+</Tabs>
+
+---
+
+## Saved search views
+
+Save any combination of query, filters, and sort order as a named view so you can return to it in one click.
+
+1. Run a search and apply any filters or sort options you want to preserve.
+2. Click **Save View** in the top-right of the results page.
+3. Enter a **View Name** and choose whether to make it **Personal** (only you) or **Shared** (all workspace members).
+4. Click **Save**. The view appears in the **Saved Views** section of the left sidebar.
+
+To update a saved view, open it, adjust the query or filters, and click **Update View** rather than saving a new one.
+
+---
+
+## Notification preferences
+
+Control which events generate in-app notifications, emails, or both.
+
+1. Go to **Profile → Notifications** (these settings are personal, not workspace-wide).
+2. For each notification category, choose **In-app**, **Email**, **Both**, or **None**:
+
+   | Category | Description |
+   |---|---|
+   | **Mentions** | When a teammate mentions you in a comment |
+   | **Collection activity** | When items are added to or removed from shared collections |
+   | **Saved search matches** | When new results match a saved search view |
+   | **Member activity** | When someone joins or leaves the workspace |
+
+3. For email notifications, set a **Digest frequency** — **Instant**, **Hourly**, or **Daily** — to batch emails and reduce inbox noise.
+4. Click **Save Preferences**.
+
+---
+
+## Custom domain
+
+Map your workspace to a subdomain you control — for example, `search.yourcompany.com` — so team members access Google from a familiar, branded URL.
+
+1. Navigate to **Settings → Workspace → Custom Domain**.
+2. Enter your desired subdomain (for example, `search.yourcompany.com`) and click **Continue**.
+3. Google displays two DNS records to add in your domain registrar or DNS provider:
+
+   | Type | Name | Value |
+   |---|---|---|
+   | `CNAME` | `search` | `custom.google.com` |
+   | `TXT` | `_google-verify` | *(unique verification token shown in the UI)* |
+
+4. Add both records in your DNS provider, then return to Google and click **Verify Domain**. DNS propagation typically takes between a few minutes and 48 hours.
+5. Once verified, Google automatically provisions a TLS certificate for your custom domain.
+
+<Tip>
+  While waiting for DNS propagation, your workspace remains accessible at its original `*.google.com` URL. Existing shared links and bookmarks continue to work after the custom domain is active.
+</Tip>

@@ -1,0 +1,400 @@
+---
+title: "Resources API: Index and Manage Content"
+sidebarTitle: "Resources"
+description: "List, create, update, and delete indexed resources in your Google workspace. Understand indexing status and tagging via the Resources API."
+---
+
+The Resources API lets you submit URLs to be indexed by Google, organize them with tags, and manage their metadata over time. Once a resource is indexed, it becomes searchable through the Search API. All resource operations are scoped to a workspace, giving your team a shared, curated content library.
+
+<Note>
+  Newly created resources may take up to **60 seconds** to appear in search results while indexing completes. Check the `status` field on the resource object — search visibility is guaranteed once it reads `indexed`.
+</Note>
+
+## List Resources
+
+<br />
+
+`GET /v1/resources`
+
+Returns a paginated list of all resources in a workspace, ordered by creation date with the most recent first. Use the `tags` parameter to narrow results to a specific subset of your content library.
+
+### Query Parameters
+
+<ParamField query="workspace_id" type="string" required>
+  The workspace whose resources you want to list. You must have at least read access to this workspace.
+</ParamField>
+
+<ParamField query="limit" type="integer" default="20">
+  Number of resources to return per page. Minimum is `1`, maximum is `100`.
+</ParamField>
+
+<ParamField query="cursor" type="string">
+  Pagination cursor from the previous response's `next_cursor` field. Omit to start from the first page.
+</ParamField>
+
+<ParamField query="tags" type="string">
+  Comma-separated list of tags to filter by, for example `docs,public`. Only resources tagged with **all** specified tags are returned.
+</ParamField>
+
+### Response Fields
+
+<ResponseField name="next_cursor" type="string">
+  Cursor to pass on the next request to retrieve the following page. `null` when no further pages exist.
+</ResponseField>
+
+<ResponseField name="resources" type="array">
+  List of resource objects matching the query.
+
+  <Expandable title="resource object">
+    <ResponseField name="id" type="string">
+      Unique identifier for the resource.
+    </ResponseField>
+
+    <ResponseField name="title" type="string">
+      Title of the resource. Automatically extracted from the page's `<title>` tag if not provided at creation time.
+    </ResponseField>
+
+    <ResponseField name="url" type="string">
+      The canonical URL of the indexed resource.
+    </ResponseField>
+
+    <ResponseField name="tags" type="array of strings">
+      Tags attached to this resource for filtering and organization.
+    </ResponseField>
+
+    <ResponseField name="metadata" type="object">
+      Arbitrary key-value pairs associated with the resource.
+
+      <Expandable title="metadata fields">
+        <ResponseField name="author" type="string">
+          Author or owner of the resource, if detected or provided.
+        </ResponseField>
+
+        <ResponseField name="language" type="string">
+          ISO 639-1 language code detected from the content, for example `en` or `fr`.
+        </ResponseField>
+
+        <ResponseField name="word_count" type="integer">
+          Approximate number of words in the indexed content.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+
+    <ResponseField name="created_at" type="string">
+      ISO 8601 timestamp recording when the resource was submitted for indexing.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -G https://api.google.com/v1/resources \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  --data-urlencode "workspace_id=ws_01abc123" \
+  --data-urlencode "limit=10" \
+  --data-urlencode "tags=docs,public"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.google.com/v1/resources",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    params={
+        "workspace_id": "ws_01abc123",
+        "limit": 10,
+        "tags": "docs,public",
+    },
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+**Example Response**
+
+```json
+{
+  "next_cursor": "eyJwYWdlIjoyfQ==",
+  "resources": [
+    {
+      "id": "res_9xk2m",
+      "title": "Getting Started with Google Workspaces",
+      "url": "https://example.com/docs/getting-started",
+      "tags": ["docs", "public"],
+      "metadata": {
+        "author": "Alex Rivera",
+        "language": "en",
+        "word_count": 1240
+      },
+      "created_at": "2024-03-15T09:22:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## Get a Resource
+
+<br />
+
+`GET /v1/resources/{id}`
+
+Returns a single resource by its unique identifier, including its current indexing status, tags, and metadata.
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The unique identifier of the resource to retrieve.
+</ParamField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl https://api.google.com/v1/resources/res_9xk2m \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.google.com/v1/resources/res_9xk2m",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+**Example Response**
+
+```json
+{
+  "id": "res_9xk2m",
+  "title": "Getting Started with Google Workspaces",
+  "url": "https://example.com/docs/getting-started",
+  "status": "indexed",
+  "tags": ["docs", "public"],
+  "metadata": {
+    "author": "Alex Rivera",
+    "language": "en",
+    "word_count": 1240
+  },
+  "created_at": "2024-03-15T09:22:00Z"
+}
+```
+
+---
+
+## Create a Resource
+
+<br />
+
+`POST /v1/resources`
+
+Submits a URL to be fetched and indexed by Google. You can optionally supply a title and tags — if no title is provided, Google extracts it from the page automatically. The response immediately reflects a `status` of `indexing`; the resource becomes searchable once `status` transitions to `indexed`.
+
+### Body Parameters
+
+<ParamField body="url" type="string" required>
+  The fully qualified URL to index. Must use `https://`. The page must be publicly accessible or reachable by Google's crawler.
+</ParamField>
+
+<ParamField body="title" type="string">
+  A custom title for the resource. If omitted, Google extracts the title from the page's `<title>` HTML element.
+</ParamField>
+
+<ParamField body="tags" type="array of strings">
+  One or more tags to attach to the resource at creation time, for example `["docs", "public", "v2"]`.
+</ParamField>
+
+<ParamField body="workspace_id" type="string" required>
+  The workspace in which this resource will be stored and made searchable.
+</ParamField>
+
+### Response Fields
+
+<ResponseField name="id" type="string">
+  Unique identifier assigned to the newly created resource.
+</ResponseField>
+
+<ResponseField name="title" type="string">
+  The title of the resource. May be `null` if automatic extraction is still in progress.
+</ResponseField>
+
+<ResponseField name="url" type="string">
+  The URL you submitted for indexing.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Current indexing state. `indexing` means the resource has been queued and is being processed. `indexed` means it is fully available in search results.
+</ResponseField>
+
+<ResponseField name="tags" type="array of strings">
+  Tags attached to the resource.
+</ResponseField>
+
+<ResponseField name="workspace_id" type="string">
+  The workspace this resource belongs to.
+</ResponseField>
+
+<ResponseField name="created_at" type="string">
+  ISO 8601 timestamp recording when the resource was submitted.
+</ResponseField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.google.com/v1/resources \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/docs/getting-started",
+    "title": "Getting Started with Google Workspaces",
+    "tags": ["docs", "public"],
+    "workspace_id": "ws_01abc123"
+  }'
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    "https://api.google.com/v1/resources",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    json={
+        "url": "https://example.com/docs/getting-started",
+        "title": "Getting Started with Google Workspaces",
+        "tags": ["docs", "public"],
+        "workspace_id": "ws_01abc123",
+    },
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+**Example Response**
+
+```json
+{
+  "id": "res_9xk2m",
+  "title": "Getting Started with Google Workspaces",
+  "url": "https://example.com/docs/getting-started",
+  "status": "indexing",
+  "tags": ["docs", "public"],
+  "workspace_id": "ws_01abc123",
+  "created_at": "2024-07-10T11:45:00Z"
+}
+```
+
+---
+
+## Update a Resource
+
+<br />
+
+`PATCH /v1/resources/{id}`
+
+Updates the title or tags on an existing resource. Only the fields you include are changed. Updating tags replaces the entire tag set — to add a single tag, first fetch the current tags with `GET /v1/resources/{id}` and include them all in your update.
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The unique identifier of the resource to update.
+</ParamField>
+
+### Body Parameters
+
+<ParamField body="title" type="string">
+  Replacement title for the resource. Maximum length is 512 characters.
+</ParamField>
+
+<ParamField body="tags" type="array of strings">
+  Complete replacement tag set. Passing an empty array `[]` removes all tags from the resource.
+</ParamField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X PATCH https://api.google.com/v1/resources/res_9xk2m \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Getting Started — Updated",
+    "tags": ["docs", "public", "featured"]
+  }'
+```
+
+```python Python
+import requests
+
+response = requests.patch(
+    "https://api.google.com/v1/resources/res_9xk2m",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    json={
+        "title": "Getting Started — Updated",
+        "tags": ["docs", "public", "featured"],
+    },
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+---
+
+## Delete a Resource
+
+<br />
+
+`DELETE /v1/resources/{id}`
+
+Permanently removes a resource from your workspace and the search index. This action cannot be undone. Any saved searches that previously returned this resource will no longer include it.
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The unique identifier of the resource to delete.
+</ParamField>
+
+### Examples
+
+<CodeGroup>
+
+```bash cURL
+curl -X DELETE https://api.google.com/v1/resources/res_9xk2m \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.delete(
+    "https://api.google.com/v1/resources/res_9xk2m",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+)
+
+# Returns 204 No Content on success
+print(response.status_code)
+```
+
+</CodeGroup>
+
+A successful deletion returns `204 No Content` with an empty response body.

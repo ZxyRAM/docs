@@ -1,0 +1,101 @@
+---
+title: "Integrate Google with Your Tools and Workflows"
+sidebarTitle: "Integrations"
+description: "Connect Google to Slack, Zapier, and custom apps using webhooks and OAuth. Subscribe to events and automate your workflows."
+---
+
+Google connects to the tools your team already uses, so information flows where you need it without manual copying or context-switching. Whether you are building a custom integration, automating tasks through a no-code platform, or piping search activity into Slack, this guide covers the setup for each approach.
+
+## Webhooks
+
+Webhooks let you receive real-time HTTP notifications whenever specific events occur in Google. You define an endpoint in your own infrastructure, subscribe it to one or more events, and Google posts a JSON payload to that URL whenever a matching event fires.
+
+### Create a webhook endpoint
+
+1. Open your workspace and navigate to **Settings → Integrations → Webhooks**.
+2. Click **Add Webhook**.
+3. Enter your **Endpoint URL** — the publicly reachable HTTPS URL on your server that will receive POST requests.
+4. (Optional) Enter a **Secret** to sign outgoing payloads. Google includes this signature in the `X-Google-Signature` header so you can verify authenticity.
+5. Click **Save Endpoint**.
+
+### Subscribe to events
+
+After creating an endpoint, select the events you want to send to it. Available events are:
+
+| Event | Triggered when… |
+|---|---|
+| `search.completed` | A user completes a search query in any workspace |
+| `resource.created` | A new resource is added to the workspace |
+| `collection.updated` | A collection is renamed, reordered, or has items added or removed |
+
+Toggle each event on or off in the **Event Subscriptions** section beneath your endpoint URL. Changes take effect immediately — no redeployment required.
+
+### Webhook payload format
+
+Every event POST uses the same envelope structure. Here is a sample payload for the `resource.created` event:
+
+```json
+{
+  "event": "resource.created",
+  "timestamp": "2024-06-01T12:00:00Z",
+  "data": {
+    "id": "res_01J2KX",
+    "title": "New Resource",
+    "url": "https://example.com/page",
+    "workspace_id": "ws_8x9Qm"
+  }
+}
+```
+
+The `event` field identifies the event type, `timestamp` is ISO 8601 UTC, and `data` contains the full object relevant to that event. Respond to webhook requests with a `2xx` status code within five seconds; Google retries up to three times with exponential backoff if your endpoint returns an error or times out.
+
+---
+
+## OAuth app registration
+
+Register an OAuth app when you want your own application to act on behalf of Google users. Once registered, users can click **Authorize** in your app to grant it scoped access to their Google data without sharing passwords.
+
+1. Go to **Settings → Integrations → OAuth Apps** and click **Register App**.
+2. Fill in the required fields:
+   - **App Name** — shown to users on the authorization consent screen.
+   - **Redirect URIs** — the callback URL(s) in your app that Google redirects to after authorization. You can add multiple URIs separated by line breaks.
+   - **Scopes** — select the minimum permissions your app needs (for example, `search:read`, `collections:write`).
+3. Click **Register**. Google displays your **Client ID** and **Client Secret** — copy and store the secret immediately, as it is shown only once.
+4. Implement the standard OAuth 2.0 authorization code flow in your app using these credentials. Point your authorization request to `https://accounts.google.com/o/oauth2/auth`.
+
+<Info>
+  Rotate your Client Secret at any time from the OAuth Apps settings page. Existing tokens remain valid until they expire or are revoked, giving you time to update your application before the old secret stops working.
+</Info>
+
+---
+
+## Zapier and Make
+
+If you prefer a no-code approach, Google is available in the **Integrations Marketplace** with pre-built connectors for both Zapier and Make (formerly Integromat).
+
+1. Go to **Settings → Integrations → Marketplace** and search for **Zapier** or **Make**.
+2. Click **Connect** next to the platform you want to use.
+3. Follow the on-screen prompt to authenticate your Google account inside Zapier or Make.
+4. Build Zaps or Scenarios using Google triggers (for example, *New Search Completed*) and actions (for example, *Save to Collection*).
+
+The marketplace connection handles OAuth automatically — you do not need to register a separate OAuth app for Zapier or Make.
+
+---
+
+## Slack notifications
+
+Connect Google to a Slack workspace to receive channel notifications for activity that matters to your team.
+
+1. Navigate to **Settings → Integrations → Slack** and click **Connect to Slack**.
+2. Authorize Google in the Slack OAuth prompt, selecting the workspace and channel you want to post to.
+3. Back in Google, choose which events trigger a Slack message:
+   - New results matching a saved search
+   - Items added to a shared collection
+   - Teammate joins the workspace
+4. Click **Save Slack Settings**.
+
+<Tip>
+  Create a dedicated Slack channel (for example, `#google-alerts`) to keep notifications organized and avoid cluttering your main team channels.
+</Tip>
+
+Slack messages include a direct link back to the relevant item in Google, so your team can act on notifications without switching context.

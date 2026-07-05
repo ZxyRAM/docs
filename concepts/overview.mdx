@@ -1,0 +1,58 @@
+---
+title: "How Google Works: Platform Overview"
+sidebarTitle: "Overview"
+description: "Understand the core search loop, indexing model, and workspace concepts that power Google's platform and API."
+---
+
+Google is a cloud-based platform that connects you to the information and services you need — whether you're running a quick ad-hoc search, organizing research into shared collections, or automating workflows through the REST API. Everything on the platform revolves around a single, consistent model: you express intent through a query, Google ranks and surfaces the most relevant results, and you act on those results directly in the UI or programmatically through the API.
+
+## The Core Search Loop
+
+Every interaction with Google follows the same fundamental cycle: you submit a query, the platform ranks candidate content against that query, and a ranked list of results comes back to you.
+
+1. **Query** — You type a search expression (plain text, boolean operators, or structured filters) into the search bar or send it via the API.
+2. **Ranking** — Google scores each indexed resource against your query using a combination of textual relevance, recency, and any personalization signals tied to your account.
+3. **Results** — The platform returns an ordered list of resources. Each result carries a title, URL, snippet, tags, and a relevance score you can inspect or sort on.
+
+Because ranking runs in real time against the live index, the results you see always reflect the most current state of the content Google has indexed.
+
+## How Content Gets Indexed
+
+Before a resource can appear in search results, Google must index it. Indexing is the process of crawling a piece of content, extracting its text and metadata, and writing that information into the search index.
+
+Freshness matters here. Google re-indexes content on a rolling schedule, and it prioritizes pages that change frequently or attract high traffic. If you publish new content or update an existing page, expect it to appear in results within minutes for high-priority domains, or within a few hours for lower-priority ones. You can also trigger manual re-indexing for resources inside your workspace through the API.
+
+## Workspaces
+
+A **workspace** is the top-level organizational unit in Google. Think of it as a shared project space where you bring together saved searches, resources, and the team members who need access to them.
+
+Every workspace has:
+
+- **Resources** — the individual pages, documents, and links you've pinned or imported.
+- **Collections** — named groups of resources you've organized for a specific purpose.
+- **Members** — the users who belong to the workspace, each with an assigned role (owner, editor, or viewer).
+- **Settings** — workspace-level configuration for integrations, API keys, and default permissions.
+
+You can belong to multiple workspaces and switch between them at any time. Each workspace is fully isolated: its resources, collections, and member list are independent of every other workspace on the platform.
+
+## The API
+
+Every action available in the Google UI is also available through the REST API. The API is the same surface the UI itself uses, so there is no capability gap between the two. This means you can:
+
+- Run searches programmatically and pipe results into your own tools.
+- Create, update, and delete resources, collections, and saved queries.
+- Manage workspace members and their roles.
+- Register webhooks to receive real-time notifications when content changes.
+
+Authenticate with an API key or OAuth 2.0 token, then call the same endpoints the UI calls. Full reference documentation is available in the API section.
+
+## Explore Further
+
+<CardGroup cols={2}>
+  <Card title="Key Features" icon="stars" href="/concepts/key-features">
+    Dive into full-text search, collections, permissions, integrations, and real-time updates.
+  </Card>
+  <Card title="Data Model" icon="database" href="/concepts/data-model">
+    Understand the Users, Workspaces, Resources, Collections, and Queries that make up the platform.
+  </Card>
+</CardGroup>

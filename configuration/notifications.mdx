@@ -1,0 +1,156 @@
+---
+title: "Configure Notifications in Google"
+sidebarTitle: "Notifications"
+description: "Set up email digests, in-app alerts, webhook pushes, and mobile notifications to stay informed about activity in your Google workspace."
+---
+
+Google keeps you informed about activity that matters to you — new search results matching a saved query, updates to shared collections, or actions taken by workspace members. You can receive these updates through email, in-app notifications, webhooks, and mobile push notifications, and you can tune each channel independently so you only hear about what's relevant to you.
+
+## Email Notifications
+
+Email notifications let you receive activity summaries and event alerts in your inbox.
+
+### Digest Frequency
+
+Rather than sending one email per event, Google batches email notifications into a digest. Navigate to **Settings → Notifications → Email** to choose your preferred delivery schedule:
+
+| Frequency | Description |
+|---|---|
+| **Real-time** | An email is sent within minutes of each qualifying event. Best for time-sensitive workflows. |
+| **Daily Digest** | A single summary email delivered each morning at 8:00 AM in your configured timezone. |
+| **Weekly Digest** | A summary email delivered every Monday morning covering the past 7 days. |
+| **Off** | No email notifications. You can still see all activity in-app. |
+
+### Event Types
+
+Choose which types of events trigger an email. Toggle each event type on or off under **Settings → Notifications → Email → Event Types**:
+
+<AccordionGroup>
+  <Accordion title="New Results">
+    Receive an email when a saved search query returns new results that weren't present the last time Google checked. Set the check frequency (hourly, daily, or weekly) per saved search from the **Saved Searches** panel.
+  </Accordion>
+
+  <Accordion title="Collection Updates">
+    Get notified when someone adds, removes, or renames a resource inside a collection you own or follow. This includes bulk imports and automated collection refreshes.
+  </Accordion>
+
+  <Accordion title="Member Activity">
+    Stay informed when workspace members join, leave, or change roles, or when someone shares a collection or saved search with you.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## In-App Notifications
+
+The in-app notification center is the bell icon (🔔) in the top navigation bar. It shows you a real-time feed of activity without requiring you to check your inbox.
+
+### What Triggers an In-App Notification
+
+In-app notifications fire for all event types listed under email notifications, plus a few additional signals:
+
+- A search you ran matches new results since your last visit.
+- A comment or annotation is added to a resource you own.
+- A workspace admin broadcasts a message to all members.
+- An export you requested is ready to download.
+
+### Managing In-App Notifications
+
+| Action | How to Do It |
+|---|---|
+| **Mark one as read** | Click the notification in the bell dropdown. |
+| **Mark all as read** | Open the bell dropdown and click **Mark All Read** in the header. |
+| **Clear all** | Open the bell dropdown, click the trash icon, and confirm. |
+| **Open Notification Center** | Click **See All** at the bottom of the bell dropdown to open the full notification history. |
+
+<Note>
+  In-app notifications are retained for 30 days. After that they are automatically removed from the notification center, but related activity still appears in workspace audit logs if your plan includes them.
+</Note>
+
+---
+
+## Webhook Notifications
+
+Webhooks let you receive push notifications as HTTP POST requests to a URL you control. Use webhooks to integrate Google activity with Slack, PagerDuty, your own backend, or any service that accepts HTTP.
+
+### Add a Webhook Endpoint
+
+1. Navigate to **Settings → Notifications → Webhooks → Add Endpoint**.
+2. Enter the full HTTPS URL of your endpoint (for example, `https://yourapp.com/hooks/google`).
+3. Select the event types you want to deliver to this endpoint.
+4. Click **Save**. Google sends a test `ping` event to verify the URL is reachable and returns a `2xx` status.
+
+### Webhook Payload Format
+
+Every webhook event is delivered as a JSON POST body:
+
+```json
+{
+  "event_id": "evt_01hx...",
+  "event_type": "collection.updated",
+  "workspace_id": "ws_abc123",
+  "timestamp": "2024-06-01T14:32:00Z",
+  "actor": {
+    "user_id": "usr_xyz",
+    "email": "user@example.com"
+  },
+  "data": { }
+}
+```
+
+The `data` object is event-specific. Refer to the [Webhooks API Reference](/api/webhooks) for the full schema of each event type.
+
+### Retry Behavior
+
+If your endpoint returns a non-`2xx` status or times out, Google retries delivery with exponential backoff — at 30 seconds, 5 minutes, 30 minutes, and 2 hours. After four failed attempts, the event is marked as undelivered and appears in the **Webhook Logs** panel.
+
+<Tip>
+  Respond to webhook requests immediately with a `200 OK` and process the payload asynchronously. This prevents timeout-triggered retries and keeps your logs clean.
+</Tip>
+
+---
+
+## Mobile Push Notifications
+
+If you have the Google mobile app installed on iOS or Android, you can receive push notifications directly on your device.
+
+### Enable Mobile Push
+
+1. Open the Google mobile app and sign in to your workspace.
+2. When prompted, allow the app to send you notifications. You can also enable this later in your device's system settings under the Google app entry.
+3. In the app, go to **Profile → Notification Settings** to choose which event types trigger a push notification.
+
+### Notification Settings on Mobile
+
+You can control push notifications at two levels:
+
+- **App-level settings** — inside the Google mobile app under **Profile → Notification Settings**.
+- **Device-level settings** — in your phone's system notification settings, where you can control sound, banners, lock-screen visibility, and Do Not Disturb behavior.
+
+<Note>
+  Mobile push notifications respect your device's Do Not Disturb and Focus Mode schedules. Critical workspace admin broadcasts may override these settings depending on your device's configuration.
+</Note>
+
+---
+
+## Muting Workspaces and Collections
+
+If you belong to multiple workspaces or follow many collections, you can mute specific ones to suppress all notifications from them without changing your global settings.
+
+### Mute a Workspace
+
+1. Click your workspace avatar in the sidebar to open the workspace switcher.
+2. Hover over the workspace you want to mute and click the three-dot menu (**⋯**).
+3. Select **Mute Workspace**.
+
+Muting a workspace suppresses all email, in-app, webhook, and push notifications for activity within that workspace. You can still access and use the workspace normally.
+
+### Mute a Collection
+
+1. Open the collection you want to mute.
+2. Click the **⋯** menu in the collection header.
+3. Select **Mute Collection**.
+
+<Tip>
+  You can review and unmute all your muted workspaces and collections from **Settings → Notifications → Muted Items**.
+</Tip>

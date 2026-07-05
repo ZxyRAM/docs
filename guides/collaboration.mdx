@@ -1,0 +1,100 @@
+---
+title: "Collaborate with Your Team in Google Workspaces"
+sidebarTitle: "Collaboration"
+description: "Invite team members, assign roles, share collections, review activity logs, and manage access in your Google workspace."
+---
+
+Google workspaces are designed for teams. You can bring colleagues in, give each person the right level of access, share curated collections with people outside your organization, and keep a clear record of every change. This guide walks you through each collaboration feature from initial invite to revoking access when someone moves on.
+
+## Invite members to a workspace
+
+Only workspace Owners and Editors can send invitations.
+
+1. Open the workspace and go to **Settings → Members**.
+2. Click **Invite Members**.
+3. Enter one or more email addresses, separated by commas.
+4. Select a **Role** for the invitees: **Editor** or **Viewer** (see the role comparison table below).
+5. Add an optional personal message, then click **Send Invitations**.
+
+Each invitee receives an email with a join link valid for 72 hours. Pending invitations appear in the **Pending** tab where you can resend or revoke them before they are accepted.
+
+---
+
+## Roles and permissions
+
+Every workspace member holds one of three roles. Assign the most restrictive role that still meets each person's needs.
+
+| Permission | Owner | Editor | Viewer |
+|---|:---:|:---:|:---:|
+| Run searches | ✅ | ✅ | ✅ |
+| Save results to collections | ✅ | ✅ | ✅ |
+| Create and edit collections | ✅ | ✅ | ❌ |
+| Invite new members | ✅ | ✅ | ❌ |
+| Manage integrations | ✅ | ✅ | ❌ |
+| Configure workspace settings | ✅ | ❌ | ❌ |
+| Change member roles | ✅ | ❌ | ❌ |
+| Delete the workspace | ✅ | ❌ | ❌ |
+| Transfer ownership | ✅ | ❌ | ❌ |
+
+<Warning>
+  **Removing an Owner cannot be undone without first transferring ownership.** If you remove the only Owner from a workspace, no one will have the permissions required to manage settings or recover the workspace. Before removing an Owner, go to **Settings → Members**, click the Owner's name, and select **Transfer Ownership** to assign the Owner role to another member.
+</Warning>
+
+---
+
+## Share collections with external users
+
+You can share individual collections with people outside your workspace — useful for clients, contractors, or stakeholders who do not need full access.
+
+### Share via link
+
+1. Open a collection and click the **Share** button in the top-right corner.
+2. Under **Link Sharing**, toggle **Enable public link**.
+3. Set the permission level for link recipients: **View only** or **Comment**.
+4. Copy the link and send it through any channel.
+
+Anyone with the link can access the collection without signing in, until you toggle off **Enable public link**.
+
+### Share via email
+
+1. Open the **Share** dialog for a collection.
+2. Enter the recipient's email address in the **Invite by email** field.
+3. Choose **View only** or **Comment** and click **Send**.
+
+Email recipients receive a direct link and must verify their email address before gaining access. Their name appears in the **Shared With** list inside the Share dialog, where you can adjust or revoke their access at any time.
+
+---
+
+## Activity log
+
+The activity log gives you a full audit trail of who did what and when inside your workspace.
+
+1. Go to **Settings → Activity Log**.
+2. Use the **Filter** controls to narrow by date range, member, or action type (for example, `collection.created`, `member.invited`, `search.exported`).
+3. Click any row to expand the full details of that event, including before-and-after values for changes.
+
+Export the log to CSV at any time by clicking **Export** in the top-right of the Activity Log page — useful for compliance reviews or periodic team check-ins.
+
+<Info>
+  The activity log retains events for 90 days on the standard plan. Upgrade to the Business plan to extend retention to 12 months and unlock advanced filtering by IP address and device.
+</Info>
+
+---
+
+## Remove members or revoke access
+
+### Remove a workspace member
+
+1. Go to **Settings → Members** and find the member you want to remove.
+2. Click the three-dot menu (⋯) next to their name and select **Remove from Workspace**.
+3. Confirm the action in the dialog. The member loses access immediately — their session is terminated and their invitation link (if pending) is invalidated.
+
+Removing a member does not delete content they created. Collections, saved searches, and notes they authored remain in the workspace and are reassigned to the workspace Owner.
+
+### Revoke external collection access
+
+1. Open the shared collection and click **Share**.
+2. To revoke link access, toggle off **Enable public link**.
+3. To revoke a specific email invitee's access, find their name in the **Shared With** list and click **Remove**.
+
+Revoked users lose access the next time they attempt to load the collection — active sessions are invalidated within one minute.

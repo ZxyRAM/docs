@@ -1,0 +1,76 @@
+---
+title: "Authenticate Google API Requests"
+sidebarTitle: "Authentication"
+description: "Pass API keys or OAuth bearer tokens in the Authorization header to authenticate every Google API request. Includes key rotation guidance."
+---
+
+Every request to the Google API must be authenticated. The API supports two credential types — API keys for server-to-server integrations and OAuth 2.0 bearer tokens for user-delegated access — but both use the same `Authorization` header format, so switching between them requires no structural changes to your HTTP calls.
+
+## API Key Authentication
+
+Generate an API key from the **Google Developer Console** under **Settings → API Keys**. Include it on every request using the `Authorization` header with the `Bearer` scheme.
+
+<ParamField header="Authorization" type="string" required>
+  Your API key prefixed with `Bearer `. Example: `Bearer ggl_sk_live_abc123`.
+</ParamField>
+
+API keys are scoped to your account and carry all permissions associated with your plan. Treat them as secrets — never commit them to source control or expose them in client-side code.
+
+## OAuth 2.0 Bearer Tokens
+
+If your integration acts on behalf of a user, obtain an OAuth 2.0 access token through the standard authorization code or client credentials flow. Pass the resulting token in the same `Authorization: Bearer` header. The API validates the token's scope and expiry on every call.
+
+<ParamField header="Authorization" type="string" required>
+  A valid OAuth 2.0 access token prefixed with `Bearer `. Example: `Bearer ya29.A0ARrdaM...`.
+</ParamField>
+
+## Request Examples
+
+Use the examples below as a starting point for your preferred environment.
+
+<CodeGroup>
+
+```bash cURL
+curl https://api.google.com/v1/search?q=test \
+  -H "Authorization: Bearer ggl_sk_live_abc123"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.google.com/v1/search",
+    params={"q": "test"},
+    headers={"Authorization": "Bearer ggl_sk_live_abc123"}
+)
+data = response.json()
+```
+
+</CodeGroup>
+
+## Authentication Failures
+
+When a request arrives without credentials, or with credentials that are missing, expired, or malformed, the API returns a `401 Unauthorized` response. Check the `error.code` field in the body to distinguish the specific cause.
+
+```json
+{
+  "error": {
+    "code": "unauthorized",
+    "message": "API key is missing or invalid.",
+    "status": 401
+  }
+}
+```
+
+See the [Errors reference](/api/errors) for the full list of error shapes and recommended handling strategies.
+
+## Key Rotation
+
+Rotate your API key at any time without downtime by following this sequence:
+
+1. Open **Settings → API Keys** in the Google Developer Console and click **Generate New Key**. Your old key remains active.
+2. Deploy the new key to all services and infrastructure that use the API.
+3. Verify that requests are succeeding with the new key by checking your logs or the rate-limit headers.
+4. Revoke the old key from the Developer Console once you have confirmed the rollover is complete.
+
+This zero-downtime approach ensures no requests are dropped during the transition. Keep the overlap window as short as practical to reduce the risk of a leaked old key being exploited.

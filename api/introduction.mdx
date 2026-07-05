@@ -1,0 +1,82 @@
+---
+title: "Google REST API: Overview and Conventions"
+sidebarTitle: "Introduction"
+description: "The Google REST API base URL, versioning, rate limits, pagination, and JSON conventions you need before making your first request."
+---
+
+The Google REST API gives you programmatic access to search, user management, and the full suite of Google platform services. Before you send your first request, familiarise yourself with the conventions below — they apply consistently across every endpoint so you can build confidently and avoid common integration pitfalls.
+
+## Base URL
+
+Every request targets the following base URL. Append the endpoint path directly after the version segment.
+
+```
+https://api.google.com/v1
+```
+
+## REST Conventions
+
+The API follows standard REST principles. All request and response bodies are formatted as JSON, and you must include the `Content-Type: application/json` header on any request that carries a body. HTTP verbs map to operations in the usual way:
+
+| Verb     | Operation                        |
+|----------|----------------------------------|
+| `GET`    | Retrieve a resource or list      |
+| `POST`   | Create a new resource            |
+| `PUT`    | Replace a resource entirely      |
+| `PATCH`  | Update specific fields           |
+| `DELETE` | Remove a resource                |
+
+## Versioning
+
+The current stable version of the API is **v1**, reflected in the base URL path. Google increments the version number only for breaking changes — adding new fields or endpoints is never considered breaking. When a new major version is released, the previous version remains supported for a deprecation window announced in the changelog, giving you time to migrate without disruption.
+
+## Rate Limits
+
+Your plan determines how many requests you can make per 60-second rolling window. Exceeding your limit returns a `429 Too Many Requests` response.
+
+| Plan         | Requests per minute |
+|--------------|---------------------|
+| Pro          | 1,000               |
+| Enterprise   | 10,000              |
+
+Every response includes the following headers so you can track consumption in real time:
+
+<ResponseField name="X-RateLimit-Limit" type="integer">
+  The maximum number of requests allowed in the current window for your plan.
+</ResponseField>
+
+<ResponseField name="X-RateLimit-Remaining" type="integer">
+  The number of requests you have left before hitting your limit in the current window.
+</ResponseField>
+
+<ResponseField name="X-RateLimit-Reset" type="integer">
+  A Unix timestamp (UTC) indicating when the current rate-limit window resets and your quota is restored.
+</ResponseField>
+
+## Pagination
+
+List endpoints use **cursor-based pagination** to ensure stable, efficient traversal of large result sets. When a response contains more records than the page size, it includes a `next_cursor` field in the response body. Pass that value as the `cursor` query parameter in your next request to fetch the following page. When `next_cursor` is absent from the response, you have reached the last page.
+
+```json
+{
+  "results": [...],
+  "next_cursor": "eyJpZCI6IjEyMzQ1In0="
+}
+```
+
+## Explore the API
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api/authentication">
+    Learn how to pass API keys and OAuth tokens in the Authorization header.
+  </Card>
+  <Card title="Errors" icon="circle-exclamation" href="/api/errors">
+    Understand error codes, response shapes, and retry strategies.
+  </Card>
+  <Card title="Search" icon="magnifying-glass" href="/api/search">
+    Query the Google search index programmatically and filter results.
+  </Card>
+  <Card title="Users" icon="user" href="/api/users">
+    Create, read, update, and delete user accounts on your platform.
+  </Card>
+</CardGroup>

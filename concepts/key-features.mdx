@@ -1,0 +1,80 @@
+---
+title: "Key Features of the Google Platform"
+sidebarTitle: "Key Features"
+description: "Explore Google's core capabilities: full-text search, collections, permissions, integrations, and real-time updates."
+---
+
+Google packages a rich set of capabilities into a single, coherent platform so you can move from raw search to organized, shared knowledge without leaving the product. The sections below walk through each major feature area — what it does, how it works, and how you can put it to use.
+
+## Search
+
+Google's search engine supports full-text queries across every resource in your workspace. Beyond simple keyword matching, you can apply filters (by date, content type, tag, or author), use facets to drill into a slice of results, and tune ranking by boosting or burying specific signals.
+
+**How it works under the hood:**
+
+- **Full-text** — Every indexed resource is tokenized and stored in an inverted index. Your query terms are matched against that index and scored with TF-IDF and BM25 weighting.
+- **Filters** — Append structured predicates to your query (`type:document`, `after:2024-01-01`) to restrict the candidate set before ranking runs.
+- **Facets** — The API returns aggregated counts for each filterable dimension so you can render a facet panel in your own UI.
+- **Ranking** — Recency, click-through signals, and personalization adjustments layer on top of text relevance to produce the final result order.
+
+## Collections
+
+Collections let you group resources under a descriptive name so you can revisit a curated set of results without rerunning the search each time.
+
+Create a collection from any search results page, give it a name and optional description, then add or remove resources as your needs evolve. Collections are first-class workspace objects, which means you can share them with teammates, embed them in other tools via the API, and reference them in saved queries.
+
+## Sharing & Permissions
+
+Google uses a three-tier role model that applies to both workspaces and individual collections.
+
+| Role | What they can do |
+|---|---|
+| **Owner** | Full control — manage members, change settings, delete the workspace or collection. |
+| **Editor** | Create, update, and delete resources and collections; cannot manage members or settings. |
+| **Viewer** | Read-only access to resources and collections; cannot make any changes. |
+
+Assign roles at the workspace level to set a default, then override them at the collection level for finer-grained control. For example, you can give an external contractor viewer access to the workspace but editor access to a single collection they're actively working in.
+
+## Integrations
+
+Connect Google to the rest of your stack through webhooks, OAuth apps, and API keys.
+
+- **Webhooks** — Register a URL to receive `POST` notifications whenever a resource is indexed, updated, or removed, or when a collection changes.
+- **OAuth apps** — Build third-party applications that act on behalf of your users. Users authorize your app through a standard OAuth 2.0 consent flow; your app receives a scoped access token.
+- **API keys** — Generate long-lived keys for server-to-server integrations where a user context isn't needed. Scope each key to a specific workspace and set of permissions.
+
+## Real-Time Updates
+
+Changes propagate across the platform in near real time. When a resource is re-indexed, updated, or deleted, the following happens in sequence:
+
+1. The index is updated with the new content and metadata.
+2. Any active webhook subscriptions for the affected workspace fire immediately.
+3. UI sessions connected to the workspace receive a push notification and refresh their views automatically.
+4. API responses for subsequent queries reflect the new state without any cache-busting required on your end.
+
+## Feature Overview
+
+<CardGroup cols={2}>
+  <Card title="Search" icon="magnifying-glass">
+    Full-text queries with filters, facets, and tunable ranking across every indexed resource.
+  </Card>
+  <Card title="Collections" icon="folder-open">
+    Named groups of resources you curate, share, and reference without rerunning searches.
+  </Card>
+  <Card title="Permissions" icon="lock">
+    Owner, editor, and viewer roles at both the workspace and collection level.
+  </Card>
+  <Card title="Integrations" icon="plug">
+    Webhooks, OAuth apps, and API keys to embed Google into any workflow or product.
+  </Card>
+  <Card title="Real-Time Updates" icon="bolt">
+    Index changes, webhook events, and UI refreshes propagate in seconds, not hours.
+  </Card>
+  <Card title="REST API" icon="code">
+    Every UI action is available via the API — same surface, full parity, no capability gaps.
+  </Card>
+</CardGroup>
+
+<Tip>
+  The most powerful workflows on Google combine multiple features together. Try saving a filtered search as a collection, sharing that collection with your team at the editor role, and then setting up a webhook to notify a Slack channel whenever a new resource is added. You get organized knowledge, controlled access, and automated awareness — all with no custom infrastructure.
+</Tip>
